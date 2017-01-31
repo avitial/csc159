@@ -331,7 +331,7 @@ $(MY_DLI) :	$(OBJECTS) Makefile
 #  Dependencies.
 #### YQYQYQ-MARK-2 ####
 #
-#  Dependencies generated Mon Jan 30 17:07:47 PST 2017 by (spede-mkmf $Revision: 1.2 $/1)
+#  Dependencies generated Mon Jan 30 21:05:38 PST 2017 by (spede-mkmf $Revision: 1.2 $/1)
 #
 
 sample.o: sample.c \

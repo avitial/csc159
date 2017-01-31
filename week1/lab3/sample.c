@@ -1,15 +1,18 @@
 /* sample.c - Sample Main program for SPEDE - Nov 2005, bjw */
-
 #include <spede/stdio.h>
 #include <spede/flames.h>
 
+void DisplayMsg(int i){
+  printf("%d Hello world %d ECS\n", i, i);
+  cons_printf("--> Hello world <--\nCPE/CSC"); // Target printf
+};
+
 int main(void){
-  int i=0;
-  for(i; i<=200; i++){
-    do{
-      printf("%d Hello world %d \nECS", i, 2*i);
-      cons_printf("--> Hello world <--\nCPE/CSC"); // Target printf
-    } while(i>=111 && i<=115);
+  long i;
+  i = 111;
+
+  for(i; i<=115; i++){ 
+    DisplayMsg(i); 
   }
   return 0;
 } // end main()
