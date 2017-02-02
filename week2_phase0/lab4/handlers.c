@@ -4,13 +4,13 @@
 //************************************************************
 
 #include "spede.h"
+#define name_len (unsigned)strlen(my_name) // length of my_name
 #define space_val (' ' + 0xf00)
 
 char my_name[] = "Luis E Avitia";
-int i = 0;  // array index val for my_name
+int i = 0;  // array index value for my_name
 int j = 0;  // to replace chars written with spaces
 int tick_count = 0;  // count # of timer events
-int name_len = (unsigned)strlen(my_name); // lenght of my_name
 
 // 2-byte (unsigned short) ptr points to video memory location
 ///assume screen has 24 rows, 80 columns, upper-left corner (b8000)
@@ -33,17 +33,6 @@ void TimerHandler(){
 			char_p = char_p_origin; // reset pointer location
 		}
 	}
-  /*incr tick_count
-    if tick_count is 75{   // every .75 seconds
-      incr i (array index for my_name)
-      incr char_p 
-      if(i equals the length of my_name){
-         i rolls back to 0
-         char_p rolls back to location/address of beginning location on screen again
-         loop on j to erase all chars shown, by char_p[j] =' ' (need no color mask 0xf00)
-      }
-    }
-   */
   // dismiss timer event (IRQ 0), otherwise, new event from timer 
   // won't be recognized by CPU since circuit uses edge-trigger flipflop
   outportb(0x20, 0x60);  // 0x20 is PIC control, reg, 0x60 dismisses IRQ 0
