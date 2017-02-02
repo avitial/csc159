@@ -1,5 +1,6 @@
 //************************************************************
-// spede.h, Phase 0, Exercise 4 -- Timer Evenr
+// Name: Avitia, Luis E
+// spede.h, Phase 0, Exercise 4 -- Timer Event
 //************************************************************
 
 #ifndef __SPEDE_H__
