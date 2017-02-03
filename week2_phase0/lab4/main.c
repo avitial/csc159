@@ -2,7 +2,7 @@
  * main.c, Phase 0, Exercise 4 -- Timer Event
  */
 
-#define LOOP 1666000 // handy LOOP to time .6 microseconds
+#define LOOP 1666000 // loop to time .6 us
 #include "spede.h"
 #include "events.h" // needs addr of TimerEvent
 
@@ -17,7 +17,7 @@ void RunningProcess(void){
 
 int main(){
 	IDT_p = get_idt_base(); // get IDT location
-	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p);  // show both addresses of IDT
+	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show IDT addr
 
 	fill_gate(&IDT_p[TIMER_EVENT], (int)TimerEvent, get_cs(), ACC_INTR_GATE,0);
 	outportb(0x21, ~0x01); // 0x21 is PIC mask, ~1 is mask
@@ -25,9 +25,9 @@ int main(){
 
 	while(1){
 		if(cons_kbhit()){
-			break; // event triggered, exit loop
+			break; // kb pressed, exit loop
 		}else{
-			RunningProcess(); // run process until event is triggered
+			RunningProcess(); // run process until kb is pressed
 		}
 	}
 	return 0; // main() ends

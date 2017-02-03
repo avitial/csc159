@@ -3,10 +3,10 @@
  */
 
 #include "spede.h"
-#define name_len (unsigned)strlen(my_name) // length of my_name
+#define name_len (unsigned)strlen(my_name) // my_name len
 
 char my_name[] = "Luis E Avitia";
-int i = 0;  // array index val
+int i = 0;  // array index
 int j = 0;
 int tick_count = 0;  // cnt # of timer events
 
@@ -21,6 +21,7 @@ void TimerHandler(){
 		if(i == name_len + 1){ // check len of my_name
 			i = 0;
 			char_p = (unsigned short *)0xB8000 + 12 * 80 + 35; // rst ptr
+
 			for(j=0; j<=name_len + 1; j++){ // erase display
 				*char_p = ' ' + 0xf00; // replace char with space
 				char_p++; // incr ptr
