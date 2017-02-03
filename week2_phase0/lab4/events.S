@@ -1,7 +1,8 @@
-//************************************************************
-// events.S, Phase 0, Exercise 4 -- Timer Evenr
-//************************************************************
-#include <spede/machine/asmacros.h>  // do not use/include "spede.h"
+/* Name: Avitia, Luis E
+ * events.S, Phase 0, Exercise 4 -- Timer Event
+ */
+
+#include <spede/machine/asmacros.h> 
 #include "events.h"
 
 ENTRY(TimerEvent)  // push eflag, cs, eip (by circuit)

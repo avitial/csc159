@@ -1,7 +1,6 @@
-//************************************************************
-// Name: Avitia, Luis E
-// events.h, Phase 0, Exercise 4 -- Timer Event
-//************************************************************
+/* Name: Avitia, Luis E
+ * events.h, Phase 0, Exercise 4 -- Timer Event
+ */
 
 #ifndef __EVENTS_H__
 #define __EVENTS_H__

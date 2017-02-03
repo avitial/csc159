@@ -1,7 +1,6 @@
-//************************************************************
-// Name: Avitia, Luis E
-// main.c, Phase 0, Exercise 4 -- Timer Event
-//************************************************************
+/* Name: Avitia, Luis E
+ * main.c, Phase 0, Exercise 4 -- Timer Event
+ */
 
 #define LOOP 1666000 // handy LOOP to time .6 microseconds
 #include "spede.h"
@@ -12,7 +11,7 @@ struct i386_gate *IDT_p;
 
 void RunningProcess(void){
 	int i;
-	for(i=0; i<LOOP; i++) IO_DELAY(); // asm("inb $0x80"); // delays 1 sec
+	for(i=0; i<LOOP; i++) asm("inb $0x80"); // delays 1 sec
 	cons_putchar('z'); // prints char z on screen
 }
 
