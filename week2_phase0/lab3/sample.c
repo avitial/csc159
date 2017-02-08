@@ -1,4 +1,6 @@
-/* sample.c - Sample Main program for SPEDE - Nov 2005, bjw */
+/* Name: Avitia, Luis E
+ * sample.c, Phase 0, Exercise 3 -- Timer Event
+ * Sample Main program for SPEDE - Nov 2005, bjw */
 #include <spede/stdio.h>
 #include <spede/flames.h>
 

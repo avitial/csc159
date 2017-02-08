@@ -1,0 +1,174 @@
+<html>
+<head><title>CpE/CSc159 Phase 1, Time Sharing and Context Switches</title></head>
+<body>
+<small><i>
+Sacramento State<br>
+Computer Engineering / Computer Science<br>
+CpE/CSc 159 Operating System Pragmatics (Spring 2017)<br>
+Instructor: W. Chang
+</i></small>
+
+<p>
+<center><big><b>Phase 1 &nbsp; Time Sharing and Context Switches</b></big></center></p>
+
+<h3>Introduction</h3>
+<ol>
+<li>
+In the 1st phase of our OS project the kernel is driven by its
+internal timer device that we have experimented. The creation,
+scheduling, and running, of simple thread-based processes are
+what we will use to test this time-sharing capability.
+<p>
+<li>
+The mix of pseudo and actual code files are given in <i><b>Src</b></i>.
+What you learned from the timer-event handling is crucial to complete
+this phase.
+<p>
+<li>
+Again, copying given files can be done by issuing the shell command:
+"<b><tt>cp ~changw/html/159/1/Src/* .</tt></b>" (Note the "dot" symbol
+at the end which means <i>your current directory</i> (as the destination
+to copy).
+<p>
+<li>
+Avoid <tt>copy-paste</tt> from what a webpage shows since it may contain
+extra characters such as <tt>Ctrl-M</tt> that can cause compiler errors.
+<p>
+</ol>
+<p>
+
+<h3>The "Src" Skeleton</h3>
+<ol>
+<li>
+The <b><i>Src</i></b> directory contains actual and pseudo code
+that you need: the bootstrap of your OS is to:
+<li>first initialize the data the OS will use,
+<li>set up control environment (timer-event handling),
+<li>create the first process (<i>Init</i>), and
+<li>load the first process into CPU (and it runs).
+<p>
+<li>
+What the <i>Init</i> process does is running an infinite loop
+showing its PID (1) about every second. While doing so, timer
+events occur in the background and the kernel code will be
+invoked and run, and subsequently call its timer handler.
+The timer event occurs at the rate of 100 Hz.
+<p>
+<li>
+The timer handler counts the CPU runtime of the running process
+and compare it against a preset time limit, and then set the kernel
+to choose a different process to run next when the limit is reached.
+A pool of processes that are ready to run can have their PID's queue
+in a queue to be selected. Our kernel can thus alternate the running
+process with the <i>round-robin</i> timer-sharing scheduling policy.
+<p>
+<li>
+We also have the kernel coded to catch for a key entry on the Target PC
+to handle it as:
+   <ol>
+   <li>if <i><b>n</b></i> key, create a new process by calling <tt>NewProcHandler()</tt>.
+   <li>if <i><b>b</b></i> key, go into the GDB prompt for debugging work or exit.
+   </ol>
+<p>
+<li>
+<i>TimerHandler()</i> upcounts <tt>cpu_time</tt> of the Process Control
+Block (PCB) of the current running process. This count is then compared
+to <tt>TIME_LIMIT</tt>. If they are equal, the process will be <i>suspended</i>
+(a form of <i>preemption</i>). A suspended process will have its PID appended
+(enqueued) to the tail of ready-to-run process queue for its next turn.
+<p>
+<li>
+<tt>Scheduler()</tt> dequeues the next PID from the ready-to-run process
+queue only when needed. E.g., the current running PID has been reset by
+TimerHandler. In that case, the first process in the ready-to-run PID
+queue will be chosen (dequeued) to run.
+<p>
+<li>
+A process <tt>state</tt> can be changed by event handlers. The
+<tt>ready_q</tt> has PID's of those that are ready to run. The state
+of these processes are all <tt><b>READY</tt></b>. There is only one
+process (at most) that has the <tt>RUN</tt> state, therefore, there
+is no need to have a queue for it. The PID's of processes not being
+used are queued in <tt>free_q</tt> and their state is <tt>FREE</tt>.
+<p>
+<li>
+When a new process is to be created, a PID from the free queue is
+first dequeued by <i>NewProcHandler()</i> which does the rest of
+the creation work. The PID is to be queued into the <tt>ready_q</tt>.
+<p>
+<li>
+The <tt>free_q</tt> is initially queued with numbers 1 to 19, while
+the <tt>ready_q</tt> is initially empty. The first process <tt>Init</tt>
+will be created by <i>NewProcHandler</i> and PID 1 since that is the
+first number to be dequeued from <tt>free_q</tt>.
+<p>
+<li>
+Each PID queue has a 20-integer array called <i>q</i> and an integer
+<i>size</i> to indicate its current size. The code <tt><b>tools.c</tt></b>
+is to be completed to facilitate enqueue and dequeue functions, besides
+<tt>MyBzero()</tt> used to clear data blocks. These are small kernel tools.
+<p>
+<li>
+Each process has a <i>Process Control Block</i> (PCB) the kernel maintains:
+   <ol>
+   <li><b>state</b>, process state: FREE, RUN, READY, SLEEP, WAIT, and ZOMBIE
+   <li><b>cpu_time</b>: counting up by the timer handler routine, set to zero when
+   it is selected to start a new run by <tt>Scheduler</tt>.
+   <li><b>TF_t *TF_p</b>: saved CPU context, located in the process runtime stack.
+   </ol>
+<p>
+<li>
+A process trapframe is constructed by <tt>NewProcHandler()</tt> as the
+initial CPU context to load and run a brand new process. The state of the
+CPU can be saved into a trapframe in the process' own runtime stack.
+Conversely, to load/resume a process is loading this trapframe back to
+the CPU (by <tt>Loader<()</tt>, coded in <i>events.S</i>).
+<p>
+<li>
+The <tt>Init</tt> process is specially created during the OS bootstrap
+<tt>main()</tt>, and the CPU instruction pointer (<tt>EIP</tt>) in the
+trapframe is set at <tt>Init()</tt>. All other processes created by pressing
+the <i>'n'</i> key will have <tt>EIP</tt> point to <tt>UserProc()</tt> instead.
+<p>
+<li>
+Each timer event must be dismissed (as how you did it in <i>Timer Event Handling
+Lab</i>). Otherwise, <i>PIC</i> will not further notify CPU on the next timer
+event (since the lack of the dismissal indicates the CPU is still busy handling
+the previous event).
+<p>
+</ol>
+
+<h3>Deliverables</h3>
+<ol>
+<li>
+By now you should have formed your OS team with another partner (at most 2
+persons in a team), and mail the instructor: the team name and member names.
+Team names must not have spaces or special symbols, and are case sensitive.
+So the instructor can create team directories for you to turn in source files.
+<li>
+Submit only the source files needed to compile from scratch. Do not submit
+any other files generated by the compiler or SPEDE tools. Source files are
+those that their names end in <b><i>.c</i></b>, <b><i>.h</b></i>, and <b><i>.S</b></i>
+only.
+<li>
+Penalty may apply if failing following what stated above.
+</ol>
+
+<h3>Review Questions</h3>
+<ol>
+<li>
+What is a trapframe? How is it used?
+<p>
+<li>
+Why <i>asm("sti");</i> is not used in phase 1? (In the timer event handling
+lab we did.)
+<p>
+<li>
+How can the <i>round-robin</i> process scheduling be modified to carry out
+other types of scheduling policies? (There are so many in the OS studies...)
+<p>
+<li>
+What are the pros and cons of cooperative OS versus preemptive OS? (Perhaps
+after phase 2, you can answer this better.)
+</ol>
+
