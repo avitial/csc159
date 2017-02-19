@@ -14,7 +14,6 @@ void NewProcHandler(func_ptr_t p) {  // arg: where process code starts
 	if (sizeof(free_q) == 0){ // if the size of free_q is 0 { // this may occur for testing
 		cons_printf("Kernel Panic: no more PID left!\n");
 		breakpoint(); // breakpoint() into GDB
-		break;
 	}
 	pid=p(&free_q); // get 'pid' from free_q
 	MyBzero((void *)proc_stack[pid], PROC_STACK_SIZE); // use MyBzero tool to clear the PCB (indexed by 'pid')
@@ -37,9 +36,9 @@ void TimerHandler(void) {
 
 	pcb[current_pid].cpu_time++; // upcount cpu_time of the process (PID is current_pid)
 
-	if (pcb[current_pid].cpu_count == TIME_LIMIT){ //    if its cpu_time reaches the preset OS time limit (see types.h)
+	if (pcb[current_pid].cpu_time == TIME_LIMIT){ //    if its cpu_time reaches the preset OS time limit (see types.h)
 		
-		pcb[current_pid].cpu_count = 0; // reset (roll over) usage time
+		pcb[current_pid].cpu_time = 0; // reset (roll over) usage time
 		pcb[current_pid].state = READY; // update/downgrade its state
 		EnQ(current_pid, &free_q);       // move it to ready_q
 		current_pid = 0; // no running PID anymore
