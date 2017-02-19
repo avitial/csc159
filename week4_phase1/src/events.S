@@ -12,24 +12,27 @@
 // loads the trapframe of the selected process in order to run it
 ENTRY(Loader)
    // copy what's above stack pointer to eax
-   // copy eax to esp (point esp to TF)
-   // 1st pop gs (see TF_t in types.h)
-   // then fs
-   // then es
-   // then ds
-   // pop all: e-d/s-i, e-b/s-p, e-b/d/c/a-x
-   // skip 4 bytes (event_num)
-   // interrupt return (pop eip, cs, eflags)
+	movl 4(%esp), %eax
+	movl %eax, %esp
+	popl %gs
+	popl %fs
+	popl %es
+	popl %ds
+	popa
+	add %4, %esp	// skip 4 bytes (event_num)
+	iret // interrupt return (pop eip, cs, eflags)
 
 // push event_num then go into kernel
 ENTRY(TimerEvent)           // push eflags, cs, eip (by circuit)
-   // push event_num
-   // push all: e-a/c/d/b-x, e-s/b-p, e-s/d-i
-   // push 4 data seg registers
-   // copy TF addr (esp) to ecx
-   // clear direction flag bit
-   SET_K_SEGS               // set kernel data segment registers
-   leal k_stack + K_STACK_SIZE, %esp  // point esp to kernel stack
-   // push ecx (TF addr) there
-   // call Kernel code
-
+pushl $TIMER_EVENT   // push event_num
+pusha   // push all: e-a/c/d/b-x, e-s/b-p, e-s/d-i
+pushl %ds   // push 4 data seg registers
+pushl %es
+pushl %fs
+pushl %gs
+movl %esp, %ecx	// copy TF addr (esp) to ecx
+cld   // clear direction flag bit
+SET_K_SEGS               // set kernel data segment registers
+leal k_stack + K_STACK_SIZE, %esp  // point esp to kernel stack
+push %ecx // push ecx (TF addr) there
+call CNAME(Kernel)    // call Kernel code
