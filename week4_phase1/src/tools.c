@@ -6,8 +6,8 @@
 
 // clear DRAM data blocks by filling zeroes
 void MyBzero(char *p, int size) {
-   loop size times during which:
-      set where p points to to 0 and increment p
+//   loop size times during which:
+//      set where p points to to 0 and increment p
 int z;
 for(z = 0; z < size; z++){
 	p-> 0;
