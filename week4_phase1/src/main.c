@@ -18,7 +18,7 @@ char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 void Scheduler() { // choose a PID as current_pid to load/run
 	if(current_pid > 0) return; // if continue below, find one for current_pid
 
-//	if (current_pid == 0) pcb[0].state = READY;   
+	if (current_pid == 0) pcb[0].state = READY;   
 
 	if ((ready_q.size)==0){ // if ready_q.size is 0 {
 		current_pid = 0; // no process, throw kernel panic msg
@@ -38,17 +38,12 @@ int main() {
 	q_t *p;
   struct i386_gate *IDT_p; // DRAM location where IDT is
   
-  p = (&free_q);
-  p->size = 0; 
-
   p = (&ready_q);
   p->size = 0;
 	p = (&free_q);
 	p->size = 0;
-	p = (&ready_q);
-	p->size = 0;
 
-	MyBzero((void *)proc_stack[i], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
+	MyBzero((char *)proc_stack[current_pid], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
 
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
 	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
