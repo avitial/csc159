@@ -6,28 +6,25 @@
 
 // clear DRAM data blocks by filling zeroes
 void MyBzero(char *p, int size) {
-//   loop size times during which:
-//      set where p points to to 0 and increment p
-int z;
-for(z = 0; z < size; z++){
-  *((char*)p+size) = '\0';
-	p++;
-}
+  int z;
+  for(z = 0; z < size; z++){
+    *(p+size) = '0';
+  }
 }
 
 // dequeue, return 1st integer in array, and move all forward
 // if queue empty, return 0
 int DeQ(q_t *p) { // return 0 if q[] is empty
-   int i, data = 0;
+  int i, data = 0;
+  i = p->q[p->size];
+  p->size+=1;
 
-if(p-> size == 0) return 0;
-	data = p->q[0];
-	p->size--;
-	for(i = 0;i < size; i++){
- 		p->[i] = p->q[i+1];
-	}
-return data;
-
+  if(p->size >= PROC_NUM){
+    p->size = 0;
+  }
+  
+  p->size -= 1;
+  return data;
 }
 
 // enqueue integer to next available slot in array, size is index
@@ -36,8 +33,7 @@ void EnQ(int data, q_t *p) {
 		cons_printf("Kernel Panic: queue is full, cannot EnQ!\n");
 		return;
 	}
-	p->q[size] = data;
+  p->q[p->size] = data;
 	p-> size++;
-
 }
 

@@ -28,7 +28,7 @@ void Scheduler() { // choose a PID as current_pid to load/run
 	else{
 		current_pid = DeQ(&ready_q); // get next ready-to-run process as current_pid
 		pcb[current_pid].state = RUN; // update proc state
-		pcb[current_pid].cpu_time = 0; // reset cpu_time count
+		// pcb[current_pid].cpu_time = 0; // reset cpu_time count
 	}
 }
 
@@ -42,8 +42,8 @@ int main() {
   p->size = 0;
 	p = (&free_q);
 	p->size = 0;
-
-	MyBzero((char *)proc_stack[current_pid], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
+  current_pid = 0; 
+	MyBzero((char *)proc_stack[0], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
 
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
 	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
@@ -55,10 +55,9 @@ int main() {
 		pcb[i].state = FREE;
 		EnQ(i, &free_q);
 	}
-	current_pid = 1; 
 	NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
 	Scheduler(); // call Scheduler() to select current_pid(will be 1)
-	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
+	Loader(pcb[1].TF_p); // call Loader with the TF address of current_pid
 	return 0; // compiler needs for syntax altho this statement is never exec
 }
 

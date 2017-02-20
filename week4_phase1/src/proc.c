@@ -8,17 +8,17 @@
 #include "proc.h"       // prototypes of processes
 // Init PID 1, always ready to run, never preempted
 void Init(void) {
-   int i;
+  int i;
 
-   while(1){
-      //show on Target PC: "1.." (since Init has PID 1 as we know)
-	cons_printf("1..");       
-	//loop for LOOP times { // to cause approx 1 second of delay
-	for(i = 0;i<LOOP; i++){
-         //call asm("inb $0x80") which delay .6 microsecond
-	asm("inb $0x80");
-      }
-   }
+  while(1){
+    //show on Target PC: "1.." (since Init has PID 1 as we know)
+	  cons_printf("1..");       
+	  //loop for LOOP times { // to cause approx 1 second of delay
+	  for(i = 0;i<LOOP; i++){
+      //call asm("inb $0x80") which delay .6 microsecond
+	    asm("inb $0x80");
+    }
+  }
 }
 
 
