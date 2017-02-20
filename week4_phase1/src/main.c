@@ -28,8 +28,8 @@ void Scheduler() { // choose a PID as current_pid to load/run
 	}
 	else{
 		current_pid = DeQ(&ready_q); // get next ready-to-run process as current_pid
-		pcb[cur_pid].state = RUN; // update proc state
-		cpu_time = 0; // reset cpu_time count
+		pcb[current_pid].state = RUN; // update proc state
+		pcb[current_pid].cpu_time = 0; // reset cpu_time count
 	}
 }
 
@@ -38,18 +38,23 @@ int main() {
 	int i;
 	struct i386_gate *IDT_p; // DRAM location where IDT is
 
-	MyBzero((void *)proc_stack[pid], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
+	p = (&free_q);
+	p->size = 0;
+	p = (&ready_q);
+	p->size = 0;
+
+	MyBzero((void *)proc_stack[i], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
 
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
 	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
 	SetIDTEntry(32, TimerEntry); // set IDT entry 32 like our timer lab
 	outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
 
-	for (i = 1; i<NUM_PROC; i++){ //queue free queue with PID 1~19
+	for (i = 1; i<PROC_NUM; i++){ //queue free queue with PID 1~19
 		pcb[i].state = FREE;
 		EnQ(i, &free_q);
 	}
-	current_pid=1; 
+	current_pid = 1; 
 	NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
 	Scheduler(); // call Scheduler() to select current_pid(will be 1)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
@@ -84,4 +89,3 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
 	Scheduler(); // call scheduler to select current_pid (if needed)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
 }
-
