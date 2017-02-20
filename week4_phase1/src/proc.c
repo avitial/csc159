@@ -12,11 +12,12 @@ void Init(void) {
 
   while(1){
     //show on Target PC: "1.." (since Init has PID 1 as we know)
-	  cons_printf("1..");       
+	  cons_printf("%d...", 1);       
 	  //loop for LOOP times { // to cause approx 1 second of delay
 	  for(i = 0;i<LOOP; i++){
       //call asm("inb $0x80") which delay .6 microsecond
-	    asm("inb $0x80");
+	    //IO_DELAY();
+      asm("inb $0x80");
     }
   }
 }

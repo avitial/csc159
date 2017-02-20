@@ -34,5 +34,5 @@ movl %esp, %ecx	// copy TF addr (esp) to ecx
 cld   // clear direction flag bit
 SET_K_SEGS               // set kernel data segment registers
 leal k_stack + K_STACK_SIZE, %esp  // point esp to kernel stack
-push %ecx // push ecx (TF addr) there
+pushl %ecx // push ecx (TF addr) there
 call CNAME(Kernel)    // call Kernel code

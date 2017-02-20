@@ -10,14 +10,16 @@
 // to create process, alloc PID, PCB, and stack space
 // build TF into stack, set PCB, register PID to ready_q
 void NewProcHandler(func_ptr_t p) {  // arg: where process code starts
-	int pid;
-  if (sizeof(free_q) == 0){ // if the size of free_q is 0 { // this may occur for testing
+	int pid; 
+
+  if(sizeof(free_q) == 0){ // if the size of free_q is 0 { // this may occur for testing
 		cons_printf("Kernel Panic: no more PID left!\n");
 		breakpoint(); // breakpoint() into GDB
 	}
   pid=DeQ(&free_q); // get 'pid' from free_q
 	//pid=p(&free_q); // get 'pid' from free_q
-	MyBzero((char *)proc_stack[pid], PROC_STACK_SIZE); // use MyBzero tool to clear the PCB (indexed by 'pid')
+	MyBzero((char *)&pcb[pid], sizeof(pcb_t));
+  MyBzero((char *)proc_stack[pid], PROC_STACK_SIZE); // use MyBzero tool to clear the PCB (indexed by 'pid')
 
 	pcb[pid].TF_p = (TF_t *)&proc_stack[pid][PROC_STACK_SIZE]; // point TF_p to highest area in stack (but has a space for a TF)
 	pcb[pid].TF_p--;
@@ -32,19 +34,20 @@ void NewProcHandler(func_ptr_t p) {  // arg: where process code starts
 	
 	// pcb[pid].cpu_count = pcb[pid].total_tick_count = 0;
 	pcb[pid].state = READY; // 	queue 'pid' to be ready-to-run
+  if(pid != 1) EnQ(pid, &ready_q);
 }
 
 // count cpu_time of running process and preempt it if reaching limit
 void TimerHandler(void) {
-
+  outportb(0x20, 0x60); /// Don't forget: notify PIC event-handling done 
 	pcb[current_pid].cpu_time++; // upcount cpu_time of the process (PID is current_pid)
   //current_pid = 0;
 	if (pcb[current_pid].cpu_time == TIME_LIMIT){ //    if its cpu_time reaches the preset OS time limit (see types.h)
 		
 		pcb[current_pid].cpu_time = 0; // reset (roll over) usage time
 		pcb[current_pid].state = READY; // update/downgrade its state
-		EnQ(current_pid, &free_q);       // move it to ready_q
+		EnQ(current_pid, &ready_q);       // move it to ready_q
 	}
-	outportb(0x20, 0x60); // Don't forget: notify PIC event-handling done 
+  current_pid = -1;
 }
 

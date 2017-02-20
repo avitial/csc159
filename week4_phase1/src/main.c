@@ -15,21 +15,19 @@ q_t ready_q, free_q; // processes ready to run and not used
 pcb_t pcb[PROC_NUM]; // process control blocks
 char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 
-void Scheduler() { // choose a PID as current_pid to load/run
-	if(current_pid > 0) return; // if continue below, find one for current_pid
+void Scheduler(){ // choose a PID as current_pid to load/run
+  if(current_pid > 0) return; // if continue below, find one for current_pid
 
-	if (current_pid == 0) pcb[0].state = READY;   
+	if(current_pid == 0)pcb[1].state = READY;   
 
 	if ((ready_q.size)==0){ // if ready_q.size is 0 {
-		current_pid = 0; // no process, throw kernel panic msg
 		cons_printf("Kernel Panic: no process to run!\n"); // big problem!
 		breakpoint(); // go into GDB
+    //break;
 	}
-	else{
 		current_pid = DeQ(&ready_q); // get next ready-to-run process as current_pid
 		pcb[current_pid].state = RUN; // update proc state
-		// pcb[current_pid].cpu_time = 0; // reset cpu_time count
-	}
+		pcb[current_pid].cpu_time = 0; // reset cpu_time count
 }
 
 // OS bootstrap from main() which is process 0, so we do not use this PID
@@ -37,27 +35,27 @@ int main() {
 	int i;
 	q_t *p;
   struct i386_gate *IDT_p; // DRAM location where IDT is
-  
+  IDT_p = get_idt_base(); // init IDT_p (locate IDT location) 
+  cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
+  fill_gate(&IDT_p[TIMER_EVENT], (int)TimerEvent, get_cs(), ACC_INTR_GATE, 0);
+  outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
   p = (&ready_q);
   p->size = 0;
 	p = (&free_q);
 	p->size = 0;
-  current_pid = 0; 
-	MyBzero((char *)proc_stack[0], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
 
-	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
-	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
-	//SetIDTEntry(32, TimerEntry); // set IDT entry 32 like our timer lab
-	fill_gate(&IDT_p [TIMER_EVENT], (int)TimerEvent, get_cs(), ACC_INTR_GATE,0);
-  outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
+  for(i=1; i<PROC_NUM; i++){
+    pcb[i].state = FREE;
+    EnQ(i, &free_q);
+  }
+  current_pid = 1;
+  //EI();
+	//MyBzero((char *)proc_stack[0], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
 
-	for (i = 1; i<PROC_NUM; i++){ //queue free queue with PID 1~19
-		pcb[i].state = FREE;
-		EnQ(i, &free_q);
-	}
 	NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
-	Scheduler(); // call Scheduler() to select current_pid(will be 1)
-	Loader(pcb[1].TF_p); // call Loader with the TF address of current_pid
+  Scheduler(); // call Scheduler() to select current_pid(will be 1)
+	EI();
+  Loader(pcb[0].TF_p); // call Loader with the TF address of current_pid
 	return 0; // compiler needs for syntax altho this statement is never exec
 }
 
@@ -70,18 +68,18 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
 	switch (TF_p->event_num){
 		case TIMER_EVENT: // if it's timer event
     		TimerHandler(); // call timer event handler
-			break;
-		default: 
-			cons_printf("Kernel Panic: unknown event_num %d!\n");
-			breakpoint(); // go into GDB 
-			break;
+        break;
+  	//	default: 
+		//	cons_printf("Kernel Panic: unknown event_num %d!\n");
+		//	breakpoint(); // go into GDB
+    //  break;
 	}
 	if(cons_kbhit()){ // if a key is pressed on Target PC
 		char key = cons_getchar(); // get the key
 
 		switch(key){ // switch by the key obtained {
 			case 'n': // if it's 'n'
-				NewProcHandler(&UserProc); // call NewProcHandler to create UserProc
+				NewProcHandler(UserProc); // call NewProcHandler to create UserProc
 			case 'b': // if it's 'b'
 				breakpoint(); break; // go into GDB
 		}
