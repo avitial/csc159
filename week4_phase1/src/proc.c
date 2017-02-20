@@ -6,8 +6,6 @@
 #include "spede.h"      // cons_xxx below needs
 #include "data.h"       // current_pid needed below
 #include "proc.h"       // prototypes of processes
-//#include "service.h"
-#define LOOP 1666000 // loop to time .6 us
 // Init PID 1, always ready to run, never preempted
 void Init(void) {
    int i;
