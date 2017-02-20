@@ -10,7 +10,7 @@ void MyBzero(char *p, int size) {
 //      set where p points to to 0 and increment p
 int z;
 for(z = 0; z < size; z++){
-	p-> 0;
+  *((char*)p+size) = '\0';
 	p++;
 }
 }
