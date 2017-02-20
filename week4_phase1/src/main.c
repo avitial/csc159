@@ -68,7 +68,7 @@ int main() {
 }
 
 void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
-	char key;
+	
 
 	pcb[current_pid].TF_p = TF_p; // save TF_P into the PCB of current_pid
 
@@ -87,7 +87,7 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
 
 		switch(key){ // switch by the key obtained {
 			case 'n': // if it's 'n'
-				NewProcHandler(DeQ(&free_q)); // call NewProcHandler to create UserProc
+				NewProcHandler(&UserProc); // call NewProcHandler to create UserProc
 			case 'b': // if it's 'b'
 				breakpoint(); break; // go into GDB
 		}
