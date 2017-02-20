@@ -8,3 +8,6 @@ rm main.o
 rm handlers.o
 rm events.o
 rm GidOS.dli
+rm proc.o
+spede-mkmf -q
+make
