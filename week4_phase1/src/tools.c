@@ -8,6 +8,11 @@
 void MyBzero(char *p, int size) {
    loop size times during which:
       set where p points to to 0 and increment p
+int z;
+for(z = 0; z < size; z++){
+	p-> 0;
+	p++;
+}
 }
 
 // dequeue, return 1st integer in array, and move all forward
@@ -15,22 +20,24 @@ void MyBzero(char *p, int size) {
 int DeQ(q_t *p) { // return 0 if q[] is empty
    int i, data = 0;
 
-   if the size of the queue p points to is 0, return data (which is 0 anyway)
-   (otherwise)
-   data is the 1st integer in the array that p points to
-   decrement the size of the queue (that p points to)
-   move all integers in the array forward by one position
+if(p-> size == 0) return 0;
+	data = p->q[0];
+	p->size--;
+	for(i = 0;i < size; i++){
+ 		p->[i] = p->q[i+1];
+	}
+return data;
 
-   return data;
 }
 
 // enqueue integer to next available slot in array, size is index
 void EnQ(int data, q_t *p) {
-   if the size of the queue p points to is Q_SIZE {
-      show on Target PC: "Kernel Panic: queue is full, cannot EnQ!\n"
-      return;       // alternative: breakpoint() into GDB
-   }
-   add data into the array index by the size of the queue
-   increment the size of the queue
+	if( p-> size == Q_SIZE){
+		cons_printf("Kernel Panic: queue is full, cannot EnQ!\n");
+		return;
+	}
+	p->q[size] = data;
+	p-> size++;
+
 }
 
