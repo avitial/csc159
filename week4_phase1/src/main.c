@@ -20,26 +20,31 @@ void Scheduler() { // choose a PID as current_pid to load/run
 
 //	if (current_pid == 0) pcb[0].state = READY;   
 
-	if ((ready_q.size)==0)){ // if ready_q.size is 0 {
+	if ((ready_q.size)==0){ // if ready_q.size is 0 {
 		current_pid = 0; // no process, throw kernel panic msg
 		cons_printf("Kernel Panic: no process to run!\n"); // big problem!
 		breakpoint(); // go into GDB
-		break;
 	}
 	else{
 		current_pid = DeQ(&ready_q); // get next ready-to-run process as current_pid
-		pcb[cur_pid].state = RUN; // update proc state
-		cpu_time = 0; // reset cpu_time count
+		pcb[current_pid].state = RUN; // update proc state
+		pcb[current_pid].cpu_time = 0; // reset cpu_time count
 	}
 }
 
 // OS bootstrap from main() which is process 0, so we do not use this PID
 int main() {
 	int i;
-	struct i386_gate *IDT_p; // DRAM location where IDT is
+	q_t *p;
+  struct i386_gate *IDT_p; // DRAM location where IDT is
+  
+  p = (&free_q);
+  p->size = 0; 
 
-	MyBzero((void *)proc_stack[pid], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
+  p = (&ready_q);
+  p->size = 0;
 
+  MyBzero((void *)proc_stack[], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
 	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
 	SetIDTEntry(32, TimerEntry); // set IDT entry 32 like our timer lab
