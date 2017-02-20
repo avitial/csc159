@@ -41,23 +41,20 @@ int main() {
   p = (&free_q);
   p->size = 0; 
 
-<<<<<<< HEAD
   p = (&ready_q);
   p->size = 0;
-=======
 	p = (&free_q);
 	p->size = 0;
 	p = (&ready_q);
 	p->size = 0;
 
 	MyBzero((void *)proc_stack[i], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
->>>>>>> ad2e71d8ace9b687c43cbce224113a20c0193100
 
-  MyBzero((void *)proc_stack[], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
 	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
-	SetIDTEntry(32, TimerEntry); // set IDT entry 32 like our timer lab
-	outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
+	//SetIDTEntry(32, TimerEntry); // set IDT entry 32 like our timer lab
+	fill_gate(&IDT_p [TIMER_EVENT], (int)TimerEvent, get_cs(), ACC_INTR_GATE,0);
+  outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
 
 	for (i = 1; i<PROC_NUM; i++){ //queue free queue with PID 1~19
 		pcb[i].state = FREE;
