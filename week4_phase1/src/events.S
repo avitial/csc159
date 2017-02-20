@@ -19,7 +19,7 @@ ENTRY(Loader)
 	popl %es
 	popl %ds
 	popa
-	add %4, %esp	// skip 4 bytes (event_num)
+	add $4, %esp	// skip 4 bytes (event_num)
 	iret // interrupt return (pop eip, cs, eflags)
 
 // push event_num then go into kernel

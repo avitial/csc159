@@ -11,6 +11,7 @@ int j = 0;
 int tick_count = 0;  // cnt # of timer events
 
 unsigned short *char_p = (unsigned short *)0xB8000 + 12 * 80 + 35; // video mem ptr
+unsigned short *char_p_orig = (unsigned short*)0xB8000 + 12 * 80 + 35;
 
 void TimerHandler(){
 	if(tick_count++ % 75 == 0){ // incr tick_count, loop every .75 seconds

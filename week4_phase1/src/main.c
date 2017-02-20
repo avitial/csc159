@@ -41,8 +41,17 @@ int main() {
   p = (&free_q);
   p->size = 0; 
 
+<<<<<<< HEAD
   p = (&ready_q);
   p->size = 0;
+=======
+	p = (&free_q);
+	p->size = 0;
+	p = (&ready_q);
+	p->size = 0;
+
+	MyBzero((void *)proc_stack[i], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
+>>>>>>> ad2e71d8ace9b687c43cbce224113a20c0193100
 
   MyBzero((void *)proc_stack[], PROC_STACK_SIZE); // use tool function MyBzero to clear the two PID queues
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
@@ -50,11 +59,11 @@ int main() {
 	SetIDTEntry(32, TimerEntry); // set IDT entry 32 like our timer lab
 	outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
 
-	for (i = 1; i<NUM_PROC; i++){ //queue free queue with PID 1~19
+	for (i = 1; i<PROC_NUM; i++){ //queue free queue with PID 1~19
 		pcb[i].state = FREE;
 		EnQ(i, &free_q);
 	}
-	current_pid=1; 
+	current_pid = 1; 
 	NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
 	Scheduler(); // call Scheduler() to select current_pid(will be 1)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
@@ -89,4 +98,3 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
 	Scheduler(); // call scheduler to select current_pid (if needed)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
 }
-

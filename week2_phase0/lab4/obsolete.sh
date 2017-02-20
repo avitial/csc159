@@ -4,8 +4,10 @@
 rm GDB159.RC
 rm Makefile
 rm make.orig
-rm sample.o
 rm MyOS.dli
+rm events.o
+rm handlers.o
+rm main.o
 spede-mkmf -q
 make
 flash MyOS.dli

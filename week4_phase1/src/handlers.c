@@ -15,7 +15,11 @@ void NewProcHandler(func_ptr_t p) {  // arg: where process code starts
 		cons_printf("Kernel Panic: no more PID left!\n");
 		breakpoint(); // breakpoint() into GDB
 	}
+<<<<<<< HEAD
 //	pid=p(&free_q); // get 'pid' from free_q
+=======
+	//pid=p(&free_q); // get 'pid' from free_q
+>>>>>>> ad2e71d8ace9b687c43cbce224113a20c0193100
 	MyBzero((void *)proc_stack[pid], PROC_STACK_SIZE); // use MyBzero tool to clear the PCB (indexed by 'pid')
 
 	pcb[pid].TF_p = (TF_t *)&proc_stack[pid][PROC_STACK_SIZE]; // point TF_p to highest area in stack (but has a space for a TF)
