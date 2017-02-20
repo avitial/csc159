@@ -24,7 +24,7 @@ void Init(void) {
 
 // PID 2, 3, 4, etc. mimicking a usual user process
 void UserProc(void) {
-   int i, my_pid;
+   int i;
 
    while(1){
       //show on Target PC: "%d..", current_pid (will change to GetPID call later)
