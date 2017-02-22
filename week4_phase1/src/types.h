@@ -44,13 +44,13 @@ typedef enum {FREE, RUN, READY, SLEEP, WAIT, ZOMBIE} state_t;
 
 typedef struct {             // PCB describes proc image
    state_t state;            // state of process
-   int cpu_time;             // CPU runtime
+   int cpu_time, total_cpu_time;             // CPU runtime
    TF_t *TF_p;               // points to trapframe of process
 } pcb_t;
 
 typedef struct {             // generic queue type
    int q[Q_SIZE];            // integers are queued in q[] array
-   int size;                 // size is also where the tail is for new data
+   int size, head, tail;                 // size is also where the tail is for new data
 } q_t;
 
 #endif // __TYPES_H__

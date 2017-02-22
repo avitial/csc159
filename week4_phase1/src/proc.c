@@ -11,29 +11,21 @@ void Init(void) {
   int i;
 
   while(1){
-    //show on Target PC: "1.." (since Init has PID 1 as we know)
-	  cons_printf("%d...", 1);       
-	  //loop for LOOP times { // to cause approx 1 second of delay
-	  for(i = 0;i<LOOP; i++){
-      //call asm("inb $0x80") which delay .6 microsecond
-	    //IO_DELAY();
-      asm("inb $0x80");
+	  cons_printf("%d..", 1); //show on Target PC: "1.." (since Init has PID 1 as we know)      
+	  for(i=0; i<LOOP; i++){ //loop for LOOP times { // to cause approx 1 second of delay
+      asm("inb $0x80"); // call asm("inb $0x80") which delay .6 microsecond
     }
   }
 }
 
-
 // PID 2, 3, 4, etc. mimicking a usual user process
 void UserProc(void) {
-   int i;
+  int i;
 
-   while(1){
-      //show on Target PC: "%d..", current_pid (will change to GetPID call later)
-	cons_printf("%d..", current_pid);
-      //loop for LOOP times { // to cause approx 1 second of delay
-	for(i = 0; i < LOOP; i++){
-	//call asm("inb $0x80") which delay .6 microsecond
-	asm("inb $0x80");
-      }
-   }
+  while(1){
+	  cons_printf("%d..", current_pid); //show on Target PC: "%d..", current_pid 
+	  for(i=0; i<LOOP; i++){ // loop for LOOP times { // to cause approx 1 second of delay
+	    asm("inb $0x80"); //call asm("inb $0x80") which delay .6 microsecond
+    }
+  }
 }

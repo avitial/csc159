@@ -5,35 +5,44 @@
 #include "data.h"
 
 // clear DRAM data blocks by filling zeroes
-void MyBzero(char *p, int size) {
-  int z;
-  for(z = 0; z < size; z++){
-    *(p+size) = '0';
+void MyBzero(char *p, int n) {
+  int i;
+  
+  for(i = 0; i < n; i++){
+    *(p+n) = '\0';
   }
 }
 
 // dequeue, return 1st integer in array, and move all forward
 // if queue empty, return 0
 int DeQ(q_t *p) { // return 0 if q[] is empty
-  int i, data = 0;
-  i = p->q[p->size];
-  p->size+=1;
-
-  if(p->size >= PROC_NUM){
-    p->size = 0;
+  int pid; 
+ 
+  if (p->size == 0){
+    return -1;
   }
-  
+
+  pid = p->q[p->head];
+  p->head += 1;
+
+  if(p->head >= PROC_NUM){
+    p->head = 0;
+  }
   p->size -= 1;
-  return data;
+  return pid;
 }
 
 // enqueue integer to next available slot in array, size is index
-void EnQ(int data, q_t *p) {
-	if( p-> size == Q_SIZE){
+void EnQ(int pid, q_t *p) {
+  if(p->size == PROC_NUM){
 		cons_printf("Kernel Panic: queue is full, cannot EnQ!\n");
 		return;
 	}
-  p->q[p->size] = data;
-	p-> size++;
-}
+  p->q[p->tail] = pid;
+	p->tail += 1;
 
+  if(p->tail >= PROC_NUM){
+    p->tail = 0; 
+  }
+  p->size += 1;
+}
