@@ -41,13 +41,20 @@ void NewProcHandler(func_ptr_t p) {  // arg: where process code starts
 
 // count cpu_time of running process and preempt it if reaching limit
 void TimerHandler(void) {
+  q_t *p;
   outportb(0x20, 0x60); /// Don't forget: notify PIC event-handling done 
   current_time++;
+  p = &sleep_q;
 
+  while(!(p->size == 0) && (pcb[sleep_q.q[sleep_q.head]].wake_time <= current_time)){
+    int pid_temp = DeQ(&sleep_q);
+    pcb[pid_temp].state = READY;
+    EnQ(pid_temp, &ready_q);
+  }
   if(current_pid == 0) return; // if pid0, no need to handle it
   
   pcb[current_pid].cpu_time++; // upcount cpu_time of the process (PID is current_pid)
-	
+
   if (pcb[current_pid].cpu_time == TIME_LIMIT){ // if its cpu_time reaches the preset OS time limit
 		pcb[current_pid].cpu_time = 0; // reset (roll over) usage time
 		pcb[current_pid].total_cpu_time += TIME_LIMIT; // total time sumation

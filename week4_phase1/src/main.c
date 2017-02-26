@@ -22,9 +22,9 @@ void Scheduler(){ // choose a PID as current_pid to load/run
   if(current_pid > 0) return; // if continue below, find one for current_pid
 	if(current_pid == 0)pcb[0].state = READY;   
 
-  p = &ready_q;
+  p = &free_q;
 	if (p->size == 0){ // if ready_q.size is 0 {
-		cons_printf("Kernel Panic: no process to run!\n"); // big problem!
+	  cons_printf("Kernel Panic: no process to run!\n"); // big problem!
     current_pid = 0; 
 	} else{
       current_pid = DeQ(&ready_q); // get next ready-to-run process as current_pid
@@ -48,22 +48,20 @@ int main() {
   p->tail = 0;
   p->head = 0;
 
+  IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
+  cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
+  fill_gate(&IDT_p[TIMER_EVENT], (int)TimerEvent, get_cs(), ACC_INTR_GATE, 0);
+  outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
+
   for(i=1; i<PROC_NUM; i++){
     pcb[i].state = FREE;
     EnQ(i, &free_q);
   }
-  current_pid = -1;
-  
-  IDT_p = get_idt_base(); // init IDT_p (locate IDT location) 
-  cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
-  fill_gate(&IDT_p[TIMER_EVENT], (int)TimerEvent, get_cs(), ACC_INTR_GATE, 0);
-  outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
-  
-  NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
+  NewProcHandler(&Init); // call NewProcHandler(Init) to create Init proc
   current_pid = 0; 
-  // Scheduler(); // call Scheduler() to select current_pid(will be 1)
+  //Scheduler(); // call Scheduler() to select current_pid(will be 1)
   EI();
-  Loader(pcb[0].TF_p); // call Loader with the TF address of current_pid
+  Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
 	return 0; // compiler needs for syntax altho this statement is never exec
 }
 
@@ -81,7 +79,7 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
 
 		switch(key){ // switch by the key obtained {
 		  case 'n': // if it's 'n'
-        NewProcHandler(UserProc); // call NewProcHandler to create UserProc
+        NewProcHandler(DeQ(&free_q)); // call NewProcHandler to create UserProc
         break;
       case 'b': // if it's 'b'
 			  breakpoint(); // go into gdb

@@ -70,12 +70,11 @@ int main() {
   IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
   cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show l    ocation on Target PC
   IDTEntrySet(0x20, TimerEvent);
-  IDTEntrySet(0x31, SleepEvent);
-  IDTEntrySet(0x30, GetPidEvent);
+  IDTEntrySet(0x65, SleepEvent);
+  IDTEntrySet(0x64, GetPidEvent);
   outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
   
   NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
-  //current_pid = 0;
   Scheduler();
   Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
 	

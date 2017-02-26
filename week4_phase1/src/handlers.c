@@ -11,11 +11,12 @@
 // build TF into stack, set PCB, register PID to ready_q
 void NewProcHandler(func_ptr_t p) {  // arg: where process code starts
 	int pid; 
-
-  //if(sizeof(free_q) == 0){ // this may occur for testing 
-  //	cons_printf("Kernel Panic: no more PID left!\n");
-  //  breakpoint(); // breakpoint() into GDB
-	//}
+  q_t *q;
+  q = &free_q;
+  if(q->size == PROC_NUM){ // this may occur for testing 
+  	cons_printf("Kernel Panic: no more PID left!\n");
+    //`breakpoint(); // breakpoint() into GDB
+	}
 
   pid = DeQ(&free_q); // get 'pid' from free_q
   MyBzero((char *)&pcb[pid], sizeof(pcb_t));

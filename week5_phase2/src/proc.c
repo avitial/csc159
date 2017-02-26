@@ -15,7 +15,7 @@ void Init(void) {
   while(1){
 	  cons_printf("%d..", 1); //show on Target PC: "1.." (since Init has PID 1 as we know)      
 	  for(i=0; i<FAST_LOOP; i++){ //loop for LOOP times { // to cause approx 1 second of delay
-      asm("inb $0x80"); // call asm("inb $0x80") which delay .6 microsecond
+      IO_DELAY();//asm("inb $0x80"); // call asm("inb $0x80") which delay .6 microsecond
     }
   }
 }
@@ -28,6 +28,6 @@ void UserProc(void) {
   while(1){
     int sleep_amount = (pid %5) + 1; 
 	  cons_printf("%d..", pid); //show on Target PC: "%d..", current_pid 
-	  Sleep(sleep_amount);
+	  Sleep(pid, sleep_amount);
   }
 }

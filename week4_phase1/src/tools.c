@@ -33,12 +33,12 @@ int DeQ(q_t *p) { // return 0 if q[] is empty
 }
 
 // enqueue integer to next available slot in array, size is index
-void EnQ(int pid, q_t *p) {
+void EnQ(int element, q_t *p) {
   if(p->size == PROC_NUM){
-		cons_printf("Kernel Panic: queue is full, cannot EnQ!\n");
+		//cons_printf("Kernel Panic: queue is full, cannot EnQ!\n");
 		return;
 	}
-  p->q[p->tail] = pid;
+  p->q[p->tail] = element;
 	p->tail += 1;
 
   if(p->tail >= PROC_NUM){
