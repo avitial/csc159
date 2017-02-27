@@ -28,7 +28,6 @@ void UserProc(void) {
   while(1){
     int sleep_amount = (pid %5) + 1; 
 	  cons_printf("%d..", pid); //show on Target PC: "%d..", current_pid 
-//	  Sleep(pid, sleep_amount);
 	  Sleep(sleep_amount);
   }
 }
