@@ -1,1 +1,27 @@
-athena.ecs.csus.edu/~changw/159/1/ 
+http://athena.ecs.csus.edu/~changw/159/2/2.html
+
+Sacramento State 
+Computer Engineering / Computer Science 
+CpE/CSc159 Operating System Pragmatics (Spring 2017) 
+Instructor: W. Chang
+Phase 2   Kernel Services
+
+Kernel Service 1: GetPid
+During the runtime of a process, all system information including the running process ID should be kept secret and only be given by the kernel through a service call which checks the validity of the request. Thus, a process such as UserProc() will need to make a request for service: GetPid() to get its own PID. This is a Kernel Service which will suspend (voluntarily) the process in order for the kernel code to execute. Afterward the process may resume, or can be otherwise treated by the outcome and nature of the requested service.
+The service interface code is services.c which uses inline assembly instructions to invoke the kernel, particularly "int #" which voluntarily "interrupts" the process itself and the hardware will following up to switch to the kernel code. That is the main difference compared to a timer-device interrupt. However, there is no PIC mask or to IRQ dismissal to deal with.
+After the int # in GetPid() the process will resume the code in services.c which is retrieving its PID from the CPU EAX register. Thus the duty of the kernel handler GetPidHandler is to place the PID of the running (but now temporarily suspended) process into the trapframe (CPU register EAX from which GetPid will later fetch).
+Similar to how TimerEvent in events.S is coded, the new GetPidEvent is to be added. The address of this new event linkage code (in events.S) is to be added into the IDT at entry number 100 (as the designated event number).
+Coding hints are listed in the CodingHints.txt.
+Kernel Service 2: Sleep
+The Sleep service is made available so a process can use it instead of busy-delay the CPU for time control. The CPU can then load and run some other processes, to be more efficiently used. The UserProc() can now use these kernel services which replace the original CPU-delay loop. The seconds to sleep is simply its own PID (use GetPid service to get it).
+The service handler SleepHandler() first compute the wake-up time of the process by adding the current system time with the number of sleep seconds (times one hundred). The wake-up time is then kept in the PCB. The process is then preempted. No longer running. Its state is updated to SLEEP.
+The TimerHandler() code is appended to upcount the current system time upon every timer-interrupt event, and also check to see if any processes need to be waken up, i.e., search through each process if the state is SLEEP and the wake-up time has arrived. If yes, move this process (ID) to the ready-to-run queue and update its state.
+In order to keep a current system time, we add a number current_time to the kernel data which is initialize with zero and upcounted in TiemrISR().
+Deliverables
+As before, via the SAMBA client smbclient to submit only the source files (not binary files or intermediate compiler files) into your team folder in phase2.
+Review Questions
+Identify the differences between the setting up and handling of a hardware interrupt (such as the timer device), and a kernel service?
+Why bother to save the pointer argument at the beginning of Kernel()?
+How do you compare the two numbers when checking if a process requires to be waken up? Do you think using "equal" would be good enough, or "greater-equal" (or "less-equal" if the two numbers reversed) is needed?
+What can happen with your OS if testing code such as "Sleep(0)" or even "Sleep(-1)" is given? What is best to handle these exceptions?
+Can our system time ever differ real time (wall clock) after a period of time that is sufficiently lengthy (to ever cause anything like this to happen)?
