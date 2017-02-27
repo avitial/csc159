@@ -27,7 +27,7 @@ void NewProcHandler(func_ptr_t p) {  // arg: where process code starts
   
   // then fill out the eip of the TF
 	pcb[pid].TF_p->eflags = EF_DEFAULT_VALUE|EF_INTR; // EFL will enable intr!
-	pcb[pid].TF_p->eip = (unsigned int) UserProc;
+	pcb[pid].TF_p->eip = (unsigned int) p;
   pcb[pid].TF_p->cs = get_cs(); // duplicate from current CPU
 	pcb[pid].TF_p->ds = get_ds(); // duplicate from current CPU
 	pcb[pid].TF_p->es = get_es(); // duplicate from current CPU
