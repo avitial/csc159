@@ -1,0 +1,72 @@
+http://athena.ecs.csus.edu/~changw/159/2/CodingHints.txt
+*************************************
+CodingHints.txt, Phase 2, CpE/CSc 159
+*************************************
+
+1. Add into pcb_t in types.h an integer: wake_time, used to note
+   when a process is supposed to be waken up from SLEEP state
+
+2. Add into main.c/data.h an integer as the count of timer events
+   as the OS current time: current_time
+
+3. In events.h, add new constants and prototypes for two new events:
+      GETPID_EVENT 100
+      SLEEP_EVENT 101
+
+4. In events.S, add the code for the two new events to push their
+   respective event number and jump to a common routine:
+      GetPidEvent: push its unique event # and jump to CommonPart
+      SleepEvent: push its unique event # and jump to CommonPart
+      CommonPart: the part that completes the trapframe and call Kernel
+
+5. During main() bootstrap:
+   initialize current_time to start at 0
+   prep the two new IDT event entries with the code addresses
+   
+6. Code the handlers in handlers.c, and prototypes in handlers.h:
+   TimerHandler():
+   modified to add these below
+   upcount the OS current_time
+   loop for each process in the PCB array
+      if it's in SLEEP state and its wake_time reaches current_time,
+      then wake it up by
+         A. append this PID to ready-to-run process queue
+         B. update its state to READY
+
+   void GetPidHandler(void)
+      copy current_pid to the EAX field of its trapframe
+      (it then gets it as it resumes in GetPid() in services.c)
+
+   void SleepHandler(void):
+      A. calculate the future wake time in the PCB of current_pid by
+         the OS current_time + 100 * sleep seconds (passed over thru
+         Sleep() call in the EAX field of the trapframe
+      B. update its state to SLEEP
+      C. reset current_pid
+   
+7. UserProc() in proc.c can now use new kernel services in the loop:
+   calling GetPid() it needs to show it (repeatedly as it loops)
+   calling Sleep() with a GetPid() call as its sleep seconds (repeatedly)
+
+8. Try out Demo.dli and visually verify:
+   the various sleep periods each process exhibits (except Init occupies
+   2 seconds of runtime among them)
+   Since Init process uses "inb $0x80" to delay CPU:
+   Demo1666666.dli is for real lab machine (real "inb 0x80" .6 microsecond)
+   Demo166666.dli is for virtual lab machine (has slower "inb 0x80")
+
+9. How to code inline CPU instructions in services.c (prototyped in services.h)
+   int GetPid(void) {  // function receives no arguments, but return an integer
+      int pid;
+      asm("pushl %%eax;        // save register EAX to stack
+           int $100;           // interrupt CPU with IDT event 100
+           movl %%eax, %0;     // after, copy EAX to pid (%0 is 1st below)
+           popl %%eax"         // restore EAX from stack
+          : "=g" (pid)         // one output item
+          :                    // no input items
+          );
+      return pid;
+   }
+
+   When having an input, e.g., # of seconds to sleep, the input line
+   will be: "g" (seconds)
