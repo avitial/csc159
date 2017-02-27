@@ -1,35 +1,27 @@
-int GetPid(void){
-  int pid;
-/*
-  asm("int $0x64; movl %%eax, %0"
-    : "=g" (pid)
-    :
-    : "eax");
-*/
-  asm("pushl %%eax;
-      int $0x64;
-      movl %%eax, %0; 
-      popl %%eax"
-      : "=g" (pid)
-      :
-      );
-  return pid;
+// services.c, 159
+
+int GetPid(void){ // function receives no arguments, but return an integer
+	int pid;
+
+	asm("pushl %%eax;
+		int $0x64;
+		movl %%eax, %0; 
+		popl %%eax"
+		: "=g" (pid)
+		:
+	);
+	return pid;
 }
 
-int Sleep(int pid, int sleep_amount){
-  //int pid
-  //asm("movl %0, %%eax; int $0x65"
-/*  asm("movl %0, %%eax; int $0x65"
-    //: "=g" (pid)
-    :
-    : "g" (sleep_amount)
-    : "eax");
-*/  asm("pushl %%eax;
-      int $0x65;
-      movl %%eax, %0;
-      popl %%eax"
-      : "=g" (pid)
-      : "g" (sleep_amount)
-      );
-  return pid;
+//int Sleep(int pid, int sleep_amount){ // function receives arguments, return an integer
+void Sleep(int sleep_amount){ // function receives arguments, return an integer
+
+	asm("pushl %%eax;
+		int $0x65;
+		movl %%eax, %0;
+		popl %%eax"
+		: //"=g" (pid)
+		: "g" (sleep_amount)	//when having an input, e.g., # of seconds to sleep, the input line will be: "g" (seconds)
+	);
+	//return pid;
 }
