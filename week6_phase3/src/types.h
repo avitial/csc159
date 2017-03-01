@@ -55,4 +55,10 @@ typedef struct {             // generic queue type
    int size, head, tail;     // size is also where the tail is for new data
 } q_t;
 
+typedef struct {
+    int owner; // owner pid
+    int passes; // max no. of procs allowed to pass this sem
+    q_t wait_q; // blocked pids
+} sem_t;
+
 #endif // __TYPES_H__
