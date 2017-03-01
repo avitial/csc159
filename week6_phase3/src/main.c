@@ -11,7 +11,7 @@
 
 // kernel's own data:
 int current_pid, current_time, vehicle_sid; // current selected PID; if 0, none selected
-q_t ready_q, free_q, sleep_q; // processes ready to run and not used
+q_t ready_q, free_q, sleep_q, sem_q; // processes ready to run and not used
 pcb_t pcb[PROC_NUM]; // process control blocks
 char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 struct i386_gate *IDT_p;
@@ -62,17 +62,27 @@ int main() {
 	}
 	current_pid = -1; // no process running
 	current_time = 0; // init current time 
-  
+  vehicle_sid = -1;  
+
 	// init sleep_q 
 	p = &sleep_q;
 	p->size = 0;
 	p->head = 0;
 	p->tail = 0;
   
-  // init sem
-  for(i=0; i<PROC_NUM; i++){
+  // init sem_q
+  p = &sem_q;
+  p->size = 0;
+  p->head = 0;
+  p->tail = 0;
+
+  // init sem array
+  for(i=1; i<PROC_NUM; i++){
     sem[i].owner = 0; 
     sem[i].passes = 0;
+    sem[i].wait_q.size = 0;
+    sem[i].wait_q.head = 0;
+    sem[i].wait_q.tail = 0;
   }
 
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
@@ -80,14 +90,15 @@ int main() {
 	IDTEntrySet(0x20, TimerEvent);
 	IDTEntrySet(0x65, SleepEvent);
 	IDTEntrySet(0x64, GetPidEvent);
-	IDTEntrySet(0x65, SemAllocEvent);
-  IDTEntrySet(0x66, SemWaitEvent);
-  IDTEntrySet(0x67, SemPostEvent);
+	IDTEntrySet(0x66, SemAllocEvent);
+  IDTEntrySet(0x67, SemWaitEvent);
+  IDTEntrySet(0x68, SemPostEvent);
   
   outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
   
 	NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
-	Scheduler(); // call scheduler to select current_pid (if needed)
+  //NewProcHandler(Vehicle);
+  Scheduler(); // call scheduler to select current_pid (if needed)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
 	
 	return 0; // compiler needs for syntax altho this statement is never exec
@@ -107,7 +118,8 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
       TF_p->eax = current_pid;
       break;
     case SEMALLOC_EVENT:
-      SemAllocHandler(TF_p->eax);
+      TF_p->eax = current_pid; 
+      SemAllocHandler(TF_p->ebx);
       break;
     case SEMWAIT_EVENT:
       SemWaitHandler(TF_p->eax);
@@ -132,7 +144,7 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
 			  breakpoint(); // go into gdb
 			  break;
 			case 'v':
-         Vehicle(); // call Vehicle to create vehicle proc
+         NewProcHandler(Vehicle); // call Vehicle to create vehicle proc
          break;
       case 'q':
 			  exit(0); // quit program

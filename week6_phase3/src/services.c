@@ -23,7 +23,7 @@ void Sleep(int sleep_amount){ // function receives arguments, return an integer
 		: "g" (sleep_amount)	//when having an input, e.g., # of seconds to sleep, the input line will b : "g" (seconds)
 	);
 }
-int SemAlloc(int max){
+int SemAlloc(int passes){
   int sid;
   asm("pushl %%eax;
     pushl %%ebx; 
@@ -33,7 +33,7 @@ int SemAlloc(int max){
     popl %%ebx;
     popl %%eax"
     : "=g" (sid)
-    : "g" (max) 
+    : "g" (passes) 
   );
   return sid;
 }
