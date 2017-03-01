@@ -93,10 +93,40 @@ void SleepHandler(int sleep_amount){
 }
 
 void SemAllocHandler(int passes){
+  int sid;
+  q_t *p, *p_temp;
+  p = &sem_q;
+  if(!(p->size == 0)){
+      sid = DeQ(&sem_q);
+      sem[sid].passes = passes;
+      p_temp = &(sem[sid].wait_q);
+      p_temp->size = 0;
+      p_temp->head = 0;
+      p_temp->tail = 0;
+  } else{
+    sid = -1; 
+  }
+  return sid; 
 }
 
 void SemWaitHandler(int sid){
+  if(sem[sid].passes > 0){
+    sem[sid].passes -= 1; 
+  } else{
+    pcb[current_pid].state = WAIT;
+    EnQ(current_pid, &(sem[sid].wait_q));
+    current_pid = -1;
+  }
 }
 
 void SemPostHandler(int sid){
+  q_t *p;
+  p = &(sem[sid].wait_q);
+  if(!(p->size == 0)){
+    int free_pid = DeQ(&(sem[sid].wait_q));
+    pcb[free_pid].state = READY;
+    EnQ(free_pid, &ready_q);
+  } else{
+    sem[sid].passes += 1;
+  }
 }
