@@ -47,3 +47,15 @@ ENTRY(GetPidEvent)
 ENTRY(SleepEvent)
 	pushl $SLEEP_EVENT
 	jmp CommonPart
+
+ENTRY(SemAllocEvent)
+  pushl $SEMALLOC_EVENT
+  jmp CommonPart
+
+ENTRY(SemWaitEvent)
+  pushl $SEMWAIT_EVENT
+  jmp CommonPart
+
+ENTRY(SemPostEvent)
+  pushl $SEMPOST_EVENT
+  jmp CommonPart
