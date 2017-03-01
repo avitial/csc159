@@ -5,5 +5,5 @@
 
 void Init(void);      // PID 1, eternal, never preempted
 void UserProc(void);  // PID 2, 3, ...
-
+void Vehicle(void);
 #endif
