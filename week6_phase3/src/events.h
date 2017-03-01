@@ -25,10 +25,14 @@ __BEGIN_DECLS
 
 #include "types.h"          // for 'TF_t' below
 
-extern void TimerEvent(void);      // coded in events.S, assembler won't like this syntax
-extern void Loader(TF_t *);        // coded in events.S
-extern void GetPidEvent();		   // coded in events.S, code for Kernel Services
-extern void SleepEvent();		   // coded in events.S, code for Kernel Services
+extern void TimerEvent(void);// coded in events.S, assembler won't like this syntax
+extern void Loader(TF_t *);  // coded in events.S
+extern void GetPidEvent();	 // coded in events.S, code for Kernel Services
+extern void SleepEvent();		 // coded in events.S, code for Kernel Services
+extern void SemAllocEvent(); // coded in events.S, code for Semaphores 
+extern void SemWaitEvent();  // coded in events.S, code for Semaphores
+extern void SemPostEvent();  // coded in events.S, code for Semaphores
+
 __END_DECLS
 
 #endif // ifndef ASSEMBLER

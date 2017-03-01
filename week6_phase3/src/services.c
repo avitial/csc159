@@ -20,6 +20,41 @@ void Sleep(int sleep_amount){ // function receives arguments, return an integer
 		movl %%eax, %0;
 		popl %%eax"
 		:
-		: "g" (sleep_amount)	//when having an input, e.g., # of seconds to sleep, the input line will be: "g" (seconds)
+		: "g" (sleep_amount)	//when having an input, e.g., # of seconds to sleep, the input line will b : "g" (seconds)
 	);
+}
+int SemAlloc(int max){
+  int sid;
+  asm("pushl %%eax;
+    pushl %%ebx; 
+    movl %1, %%eax; 
+    int $0x66;
+    movl %%ebx, %0;
+    popl %%ebx;
+    popl %%eax"
+    : "=g" (sid)
+    : "g" (max) 
+  );
+  return sid;
+}
+
+void SemWait(int sid){
+    asm("pushl %%eax;
+      int $0x67;
+      movl %%eax, %0; 
+      popl %%eax"
+      :
+      : "g" (sid)
+   );
+
+}
+
+void SemPost(int sid){
+  asm("pushl %%eax;
+    int $0x68;
+    movl %%eax, %0; 
+    popl %%eax"
+    :
+    : "g" (sid)
+  );
 }

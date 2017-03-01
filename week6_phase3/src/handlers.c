@@ -91,3 +91,12 @@ void SleepHandler(int sleep_amount){
   pcb[current_pid].state = SLEEP;
   current_pid = -1; 
 }
+
+void SemAllocHandler(int passes){
+}
+
+void SemWaitHandler(int sid){
+}
+
+void SemPostHandler(int sid){
+}

@@ -10,11 +10,13 @@
 #include "events.h" // events for kernel to serve
 
 // kernel's own data:
-int current_pid, current_time; // current selected PID; if 0, none selected
+int current_pid, current_time, vehicle_sid; // current selected PID; if 0, none selected
 q_t ready_q, free_q, sleep_q; // processes ready to run and not used
 pcb_t pcb[PROC_NUM]; // process control blocks
 char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 struct i386_gate *IDT_p;
+unsigned short *ch_p;
+sem_t sem[Q_SIZE];
 
 void IDTEntrySet(int event_num, func_ptr_t event_addr){
 	struct i386_gate *IDT_tbl = &IDT_p[event_num];
@@ -41,7 +43,7 @@ void Scheduler(){ // choose a PID as current_pid to load/run
 int main() {
 	int i;
 	q_t *p;
-
+  vehicle_sid = -1; 
 	// init free_q
 	p = &free_q;
 	p->size = 0;
@@ -55,8 +57,8 @@ int main() {
 	p->tail = 0;
 
 	for(i=1; i<PROC_NUM; i++){ // init pcb[], skip 1 since it runs forever
-		pcb[i].state = FREE;
-		EnQ(i, &free_q);
+	  pcb[i].state = FREE;
+	  EnQ(i, &free_q);
 	}
 	current_pid = -1; // no process running
 	current_time = 0; // init current time 
@@ -66,13 +68,23 @@ int main() {
 	p->size = 0;
 	p->head = 0;
 	p->tail = 0;
+  
+  // init sem
+  for(i=0; i<PROC_NUM; i++){
+    sem[i].owner = 0; 
+    sem[i].passes = 0;
+  }
 
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
 	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show l    ocation on Target PC
 	IDTEntrySet(0x20, TimerEvent);
 	IDTEntrySet(0x65, SleepEvent);
 	IDTEntrySet(0x64, GetPidEvent);
-	outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
+	IDTEntrySet(0x65, SemAllocEvent);
+  IDTEntrySet(0x66, SemWaitEvent);
+  IDTEntrySet(0x67, SemPostEvent);
+  
+  outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
   
 	NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
 	Scheduler(); // call scheduler to select current_pid (if needed)
@@ -94,6 +106,14 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
     case GETPID_EVENT:
       TF_p->eax = current_pid;
       break;
+    case SEMALLOC_EVENT:
+      SemAllocHandler(TF_p->eax);
+      break;
+    case SEMWAIT_EVENT:
+      SemWaitHandler(TF_p->eax);
+      break;
+    case SEMPOST_EVENT:
+      SemPostHandler(TF_p->eax);
   }
 
 	if(cons_kbhit()){ // if a key is pressed on Target PC
@@ -101,18 +121,21 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
 		q_t *p;   
 		p = &free_q;
 		switch(key){ // switch by the key obtained {
-			case 'n': // if it's 'n'
-			if(p->size == 0){
-				cons_printf("No more available PIDs!\n");
-			} else{
-				NewProcHandler(UserProc); // call NewProcHandler to create UserProc
-			}
-			break;
-			case 'b': // if it's 'b'
-					breakpoint(); // go into gdb
-			break;
-				case 'q':
-			exit(0); // quit program
+			case 'n':
+			  if(p->size == 0){
+				  cons_printf("No more available PIDs!\n");
+			  } else{
+				  NewProcHandler(UserProc); // call NewProcHandler to create UserProc
+			  }
+			  break;
+			case 'b':
+			  breakpoint(); // go into gdb
+			  break;
+			case 'v':
+         Vehicle(); // call Vehicle to create vehicle proc
+         break;
+      case 'q':
+			  exit(0); // quit program
 		}
 	}
 	Scheduler(); // call scheduler to select current_pid (if needed)
