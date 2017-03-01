@@ -41,15 +41,15 @@ void Vehicle(void){ //phase 3 tester (multiple processes)
   my_pid = GetPid();
 
   while(1){
-
+    ch_p =(unsigned short *)0xB8000 + my_pid * 80 + 45;
+    *ch_p = 0xf00 + 'f';  //show i'm off the bridge
     
-    ch_p[my_pid*80+45] = 0xf00 + 'f';  //show i'm off the bridge
-    
-    for(i =0;i<FAST_LOOP;i++){           //spend a sec in RUN state
+    for(i =0; i<FAST_LOOP; i++){           //spend a sec in RUN state
       asm("inb $0x80");           
     }
     SemWait(vehicle_sid);           //ask for a pass
-    ch_p[my_pid*80+45] = 0xf00 + 'o'; //show i'm on the bridge
+    ch_p = (unsigned short *)0xB8000 + my_pid * 80 + 45;
+    *ch_p = 0xf00 + 'o'; //show i'm on the bridge
     Sleep(1);
     SemPost(vehicle_sid);             //return the pass
   }
