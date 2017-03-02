@@ -71,10 +71,10 @@ int main() {
 	p->tail = 0;
   
   // init sem_q
-  p = &sem_q;
-  p->size = 0;
-  p->head = 0;
-  p->tail = 0;
+  //p = &sem_q;
+  //p->size = 0;
+  //p->head = 0;
+  //p->tail = 0;
 
   // init sem array
   for(i=1; i<PROC_NUM; i++){

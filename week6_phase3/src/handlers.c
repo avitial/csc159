@@ -99,10 +99,10 @@ void SemAllocHandler(int passes){
   if(!(p->size == 0)){
       sid = DeQ(&sem_q);
       sem[sid].passes = passes;
-      p_temp = &(sem[sid].wait_q);
-      p_temp->size = 0;
-      p_temp->head = 0;
-      p_temp->tail = 0;
+      p = &(sem[sid].wait_q);
+      p->size = 0;
+      p->head = 0;
+      p->tail = 0;
   } else{
     sid = -1; 
   }
