@@ -36,7 +36,21 @@ void NewProcHandler(func_ptr_t p) {  // arg: where process code starts
 
   pcb[pid].cpu_time = pcb[pid].total_cpu_time = 0;
 	pcb[pid].state = READY; // 	queue 'pid' to be ready-to-run
-  if(pid != 0) EnQ(pid, &ready_q); // pid1 not queued
+ 
+ if(pid != 0) {
+   EnQ(pid, &ready_q); // pid1 not queued
+ if(pid>9){
+ ch_p[pid*80+40]=0xf00+ (pid/10+'0');
+ ch_p[pid*80+41]=0xf00+(pid%10+'0');
+ }else{
+ch_p[pid*80+40]=0xf00+pid+'0';
+ }
+
+
+  ch_p[pid*80+43] = 0xf00 +'r';
+
+
+  }
 }
 
 // count cpu_time of running process and preempt it if reaching limit

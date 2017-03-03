@@ -15,7 +15,7 @@ q_t ready_q, free_q, sleep_q, sem_q; // processes ready to run and not used
 pcb_t pcb[PROC_NUM]; // process control blocks
 char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 struct i386_gate *IDT_p;
-unsigned short *ch_p;
+unsigned short *ch_p = 0xb8000;
 sem_t sem[Q_SIZE];
 
 void IDTEntrySet(int event_num, func_ptr_t event_addr){
@@ -37,6 +37,8 @@ void Scheduler(){ // choose a PID as current_pid to load/run
 		current_pid = DeQ(&ready_q); // get next ready-to-run process as current_pid
 	}
 	pcb[current_pid].state = RUN; // update proc state
+
+  ch_p[current_pid*80+43] = 0xf00 + 'R';
 } // end Scheduler()
 
 // OS bootstrap from main() which is process 0, so we do not use this PID
