@@ -35,7 +35,7 @@ void UserProc(void) {
 void Vehicle(void){ //phase 3 tester (multiple processes)
   int i, pid;
 
-  if(vehicle_sid == -1){
+  if(vehicle_sid == 0){
     vehicle_sid = SemAlloc(3); //max passes 3
   }
   pid = GetPid();
