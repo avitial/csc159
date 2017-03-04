@@ -24,53 +24,59 @@ void IDTEntrySet(int event_num, func_ptr_t event_addr){
 } // end IDTEntrySet()
 
 void Scheduler(){ // choose a PID as current_pid to load/run
-	q_t *p;
+//	q_t *p;
 
-	if(current_pid > 0) return; // if continue below, find one for current_pid
-	if(current_pid == 0)pcb[0].state = READY;   
+	if(current_pid != 0) return; // if continue below, find one for current_pid
+//  if(current_pid == 0)pcb[0].state = READY;   
+ // if(current_pid ==0) pcb[0].state = READY;
 
-	p = &ready_q; // &free_q
-	if (p->size == 0){ // if ready_q.size is 0 {
+
+//	p = &ready_q; // &free_q
+//	changed p to ready_q
+	if (ready_q.size == 0){ // if ready_q.size is 0 {
 		cons_printf("Kernel Panic: no process to run!\n"); // big problem!
-		current_pid = 0;
-	} else{
-		current_pid = DeQ(&ready_q); // get next ready-to-run process as current_pid
+	//	current_pid = 0;
+    //addition
+    breakpoint();
 	}
+	current_pid = DeQ(&ready_q); // get next ready-to-run process as current_pid
 	pcb[current_pid].state = RUN; // update proc state
-
+//phase3
   ch_p[current_pid*80+43] = 0xf00 + 'R';
 } // end Scheduler()
 
 // OS bootstrap from main() which is process 0, so we do not use this PID
 int main() {
 	int i;
-	q_t *p;
-  vehicle_sid = -1; 
-	// init free_q
-	p = &free_q;
-	p->size = 0;
-	p->head = 0;
-	p->tail = 0;
+//q_t *p;
+// init free_q
+//	p = &free_q;
+//	p->size = 0;
+//	p->head = 0;
+//	p->tail = 0;
 
-	// init ready_q
-	p = &ready_q; 
-	p->size = 0; 
-	p->head = 0;
-	p->tail = 0;
+// init ready_q
+//	p = &ready_q; 
+//	p->size = 0; 
+//	p->head = 0;
+//	p->tail = 0;
 
-	for(i=1; i<PROC_NUM; i++){ // init pcb[], skip 1 since it runs forever
-	  pcb[i].state = FREE;
-	  EnQ(i, &free_q);
-	}
-	current_pid = -1; // no process running
+  MyBzero((char *)&free_q, PROC_NUM);
+  MyBzero((char *)&ready_q,PROC_NUM);
+  MyBzero((char *)&sleep_q,PROC_NUM);
+	
+	current_pid = 0; // no process running
 	current_time = 0; // init current time 
-  vehicle_sid = -1;  
+  vehicle_sid = 0; 
 
+  for(i=1; i<Q_SIZE; i++){
+    EnQ(i, &free_q);
+  }
 	// init sleep_q 
-	p = &sleep_q;
-	p->size = 0;
-	p->head = 0;
-	p->tail = 0;
+//	p = &sleep_q;
+//	p->size = 0;
+//	p->head = 0;
+//	p->tail = 0;
   
   // init sem_q
   //p = &sem_q;
@@ -83,8 +89,8 @@ int main() {
     sem[i].owner = 0; 
     sem[i].passes = 0;
     sem[i].wait_q.size = 0;
-    sem[i].wait_q.head = 0;
-    sem[i].wait_q.tail = 0;
+//    sem[i].wait_q.head = 0;
+//    sem[i].wait_q.tai = 0;
   }
 
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
@@ -132,11 +138,9 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
 
 	if(cons_kbhit()){ // if a key is pressed on Target PC
 		char key = cons_getchar(); // get the key
-		q_t *p;   
-		p = &free_q;
 		switch(key){ // switch by the key obtained {
 			case 'n':
-			  if(p->size == 0){
+			  if(ready_q.size == 0){
 				  cons_printf("No more available PIDs!\n");
 			  } else{
 				  NewProcHandler(UserProc); // call NewProcHandler to create UserProc
