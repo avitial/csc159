@@ -52,7 +52,7 @@ typedef struct {             // PCB describes proc image
 
 typedef struct {             // generic queue type
    int q[Q_SIZE];            // integers are queued in q[] array
-   int size, head, tail;     // size is also where the tail is for new data
+   int size;     // size is also where the tail is for new data
 } q_t;
 
 typedef struct {

@@ -13,7 +13,7 @@ void Init(void) {
   int i;
 
   while(1){
-	//  cons_printf("%d..", 1); //show on Target PC: "1.." (since Init has PID 1 as we know)      
+	  //cons_printf("%d..", 1); //show on Target PC: "1.." (since Init has PID 1 as we know)      
 	  for(i=0; i<FAST_LOOP; i++){ //loop for LOOP times { // to cause approx 1 second of delay
       asm("inb $0x80"); // call asm("inb $0x80") which delay .6 microsecond
     }
@@ -35,19 +35,20 @@ void UserProc(void) {
 void Vehicle(void){ //phase 3 tester (multiple processes)
   int i, pid;
 
-  if(vehicle_sid == 0){
+  if(vehicle_sid == -1){
     vehicle_sid = SemAlloc(3); //max passes 3
+    cons_printf("semalloc init with %d passes\n", 3);
   }
   pid = GetPid();
 
   while(1){
-    ch_p [pid * 80 + 45]= 0xf00 + 'f';  //show i'm off the bridge
+    ch_p [pid*80+45]= 0xf00 + 'f';  //show i'm off the bridge
     
     for(i =0; i<FAST_LOOP; i++){           //spend a sec in RUN state
       asm("inb $0x80");           
     }
     SemWait(vehicle_sid);           //ask for a pass
-   ch_p[pid * 80 + 45] = 0xf00 + 'o'; //show i'm on the bridge
+    ch_p[pid*80+45] = 0xf00 + 'o'; //show i'm on the bridge
     Sleep(1);
     SemPost(vehicle_sid);             //return the pass
   }
