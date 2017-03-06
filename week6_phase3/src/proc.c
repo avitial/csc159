@@ -22,13 +22,13 @@ void Init(void) {
 
 // PID 2, 3, 4, etc. mimicking a usual user process
 void UserProc(void) {
-  int pid;
+  int pid, sleep_amount;
   pid = GetPid();
   
   while(1){
-    int sleep_amount = (pid %5) + 1; 
+    sleep_amount = pid; 
 	  cons_printf("%d..", pid); //show on Target PC: "%d..", current_pid 
-	  Sleep(sleep_amount);
+    Sleep(sleep_amount);
   }
 }
 
@@ -37,7 +37,6 @@ void Vehicle(void){ //phase 3 tester (multiple processes)
 
   if(vehicle_sid == -1){
     vehicle_sid = SemAlloc(3); //max passes 3
-    cons_printf("semalloc init with %d passes\n", 3);
   }
   pid = GetPid();
 

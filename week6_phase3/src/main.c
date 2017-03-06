@@ -44,9 +44,12 @@ int main() {
   MyBzero((char *)&free_q, Q_SIZE);
   MyBzero((char *)&ready_q, Q_SIZE);
   MyBzero((char *)&sleep_q, Q_SIZE);
-  MyBzero((char *)&sem, Q_SIZE);	
-	
-  //current_pid = 0; // no proc running
+  for(i=0; i<Q_SIZE; i++){
+    MyBzero((char *)&sem[i], Q_SIZE);
+    sem[i].owner = 0; 
+    sem[i].passes = 0;
+  }
+
 	current_time = 0; // init current time 
   vehicle_sid = -1; // vehicle proc running
 
@@ -67,7 +70,6 @@ int main() {
   outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
   
 	NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
-  NewProcHandler(Vehicle); // call NewProcHandler(Vehicle) to create Init proc
   Scheduler(); // call scheduler to select current_pid (if needed)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
 	
@@ -88,12 +90,10 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
       SleepHandler(TF_p->eax);
       break;
     case GETPID_EVENT:
-      TF_p->eax = current_pid;
+      GetPidHandler(); // clal getpid event handler 
       break;
     case SEMALLOC_EVENT:
-      //TF_p->eax = vehicle_sid;
       SemAllocHandler(TF_p->eax);
-      // TF_p->eax = SemAllocHandler(TF_p->ebx);
       break;
     case SEMWAIT_EVENT:
       SemWaitHandler(TF_p->eax);
@@ -111,11 +111,7 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
 
 		switch(key){ // switch by the key obtained {
 			case 'n':
-			  if(ready_q.size == 0){
-				  cons_printf("No more available PIDs!\n");
-			  } else{
-				  NewProcHandler(UserProc); // call NewProcHandler to create UserProc
-			  }
+				NewProcHandler(UserProc); // call NewProcHandler to create UserProc
 			  break;
 			case 'b':
 			  breakpoint(); // go into gdb

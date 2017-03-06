@@ -25,10 +25,9 @@ void Sleep(int sleep_amount){ // function receives arguments, return an integer
 }
 int SemAlloc(int passes){
   int sid;
-
   asm("pushl %%eax;
     pushl %%ebx;
-    movl %%eax, %1; 
+    movl %1, %%eax; 
     int $0x66;
     movl %%ebx, %0; 
     popl %%ebx;
@@ -42,7 +41,7 @@ int SemAlloc(int passes){
 void SemWait(int sid){
     asm("pushl %%eax;
       int $0x67;
-      movl %0, %%eax; 
+      movl %%eax, %0;
       popl %%eax"
       :
       : "g" (sid)
@@ -53,7 +52,7 @@ void SemWait(int sid){
 void SemPost(int sid){
   asm("pushl %%eax;
     int $0x68;
-    movl %0, %%eax;
+    movl %%eax, %0;
     popl %%eax"
     :
     : "g" (sid)
