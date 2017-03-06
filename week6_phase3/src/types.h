@@ -45,7 +45,7 @@ typedef enum {FREE, RUN, READY, SLEEP, WAIT, ZOMBIE} state_t;
 
 typedef struct {             // PCB describes proc image
    state_t state;            // state of process
-   int cpu_time, total_cpu_time;	// CPU runtime
+   int cpu_time;	// CPU runtime
    int wake_time;			 // used to note when a process is supposed to be waken up from SLEEP state
    TF_t *TF_p;               // points to trapframe of process
 } pcb_t;
