@@ -1,0 +1,65 @@
+SYSPRINT_EVENT
+SysPrintEvent
+  pushl $
+  jmp CommonPart
+
+  main.c 
+    register interrupt
+
+new key p = call Print service 
+
+void SysPrint(char *str)
+  service call
+  "Hello world! team name members...\n\r" <-no need to add chars for next line
+  In switch case on main
+  SysPrintHandler(TF_p -> eax); (contains the address of a string to print, char *)
+  while(p), this statement is not right
+  loop str and pass char until str ptr is null{
+    outportb a char in str
+    outportb control(x, # to print)
+    inport(status) // timeout up to 3 seconds
+      inb $0x80 to sleep
+  }
+  x = 0xxxx interrupt
+  data  0x378 (outputportb(x, 'char');
+  status 0x379 read(poll outportb(x, statuscode));
+  control 0x37A outportb(x, # to tell it to print);
+  send a number to control to print
+http://athena.ecs.csus.edu/~changw/159/3/3.html
+
+Sacramento State
+Computer Engineering/Computer Science
+CpE/CSc 159 Operating System Pragmatics (Spring 2016)
+Instructor: W. Chang
+Phase 3   Semaphore Interprocess Communication 
+In Memoriam of Edsger Wybe Dijkstra (1930-2002)
+Goals
+
+In this development phase we extend our OS services with an interprocess communication (IPC) method: semaphores. It provides a way processes can collaborate to avoid "racing/conflicting" conditions when required for their collective goal of operation.
+This new service will be tested by several Vehicle processes. Similar to the situation as multiple vehicles are to cross a small bridge that has a capacity sign, there seems to be a virtual semaphore all drivers comply for a safe crossing. With Vehicle processes, each will first issue a semaphore service for getting a pass before its continuation in the code. If a pass is granted, the process can continue (not blocked). If there are no passes left in the semaphore requested at that time, the kernel handler code will suspend the calling process by placing it into the wait queue of that semaphore (blocking). A process holding a pass will normally later issue another semaphore-related service call to return the given pass (or the privilege) so other future processes may get it (or a waited process in the wait queue of that semaphore can be released and get to continue).
+
+During the period a process holding the semaphore pass, the part of code executed constitutes a guarded critical section of process runtime. Any data being accessed during that runtime section is called critical data (guarded by the semaphore).
+
+A semaphore is first allocated by a process with a preset number of passes to initialize it. This number determines the maximum amount of processes that can pass a guarded point and enter their individual critical section (provided they all comply to the correct use of semaphores).
+
+Semaphore Handlers
+
+There are three calls: SemAlloc, SemWait, and SemPost; to allocate a semaphore (initialize it with a given number of passes), to request for a pass, and to return a pass. The SemAlloc API has both input and output for the inline assembler. This requires combining the "asm()" syntax from both GetPid and Sleep calls learned in the previous OS phase.
+The call int SemAlloc(int passes) invokes void SemAllocHandler(int passes) that allocates an available semaphore (no owner information), set its passes, empty its wait queue, register the owner (to the current calling process), and return this semaphore ID (sid) via the trapframe of the calling process.
+The call void SemWait(int sid) invokes void SemWaitHandler(int sid) that decrement the passes of the semaphore by one if it has any left (above 0). Otherwise, the calling process will be blocked by its PID queued to the wait queue in the semaphore, state updated to WAIT, and resetting the OS current PID.
+The call void SemPost(int sid) invokes void SemPostHandler(int sid) which checks if there is any waiting process (previous blocked by a SemWait call, in the wait queue of the semaphore sid). If none, increment the semaphore passes by one. Otherwise, release it: dequeue the first waiting process from the wait queue, append it to the ready-to-run PID queue, update its state.
+Kernel Code Settings
+The CodingHints.txt lists what are needed to code your program for this OS phase.
+Our OS now has An array of semaphores sem_t sem[Q_SIZE] as part of its resources to be allocated for processes to use but maintained via kernel IPC service handling code. Each semaphore has an owner (owning PID) when being used, a number passes, and a wait_q (PID queue). The array indices are used as semaphore ID's (sid).
+Declare a global integer (just for testing): vehicle_sid which will be initialized to -1 during the OS bootstrap, and will later be allocated with a valid semaphore ID to be used by multiple Vehicle processes for calling SemWait and SemPost.
+The new constants in events.h are SEMALLOC_EVENT 102, SEMWAIT_EVENT 103, and SEMPOST_INTR 104. Their event linkage code is to be coded in events.S of course. The IDT preparation during the OS bootstrap as well as the switch statements in the main kernel function will mention these constants.
+The void SemAllocHandler(int passes) allocates a semaphore by finding any available semaphore that has no owner (PID is zero). Once found the index of the semaphore array is to be returned to the calling process via a register in its trapframe. If no semaphore left, a kernel panic occurs. The allocated semaphore should have its owner and passes set accordingly, and its wait queue emptied (use MyBzero tool).
+The void SemWaitISR(int sid) first checks if the passes of the semaphore is greater than zero. If so, decrement it by one. (No process blocking is needed.) If it is already zero, the calling process will need to be blocked. Hence, SemWait is a (potentially) "blocking" service call. There can be variations of SemWait calls non-blocking for purposes of solving deadlock conditions.
+Deliverables
+Source code only dropped to your destinated dropbox folder on the host Voyager as before.
+Questions to Review
+
+Enter shell command on an ECS Linux host: ipcs -l for the information about the semaphore service parametrics from the OS. Where are the "config" files the OS administrator can set them? (Answers: /etc/sysctl.conf and /proc/sys/kernel/sem.)
+What if Vehicle processes start failing to call SemPost()? What kind of condition can this be called? Can an OS detect and this type of condition? Can it resolve this? Or should it?
+What will be the purposes as the passes of a semaphore is to be set with 1, 0, or even less than 0?
+What are the definitions of starvation, deadlock, livelock? Further, can you give examples?

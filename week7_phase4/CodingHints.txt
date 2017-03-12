@@ -1,0 +1,96 @@
+http://athena.ecs.csus.edu/~changw/159/3/CodingHints.txt
+
+Procedure.txt, Phase 3 IPC: Semaphores
+
+EXTREMELY IMPORTANT: run the demo to see what your output should also
+look like. Press 'v' key to create Vehicle processes (see proc.c below)
+which tests the semaphore service capability of your OS.
+
+types.h
+   define sem_t that has
+      int owner (owner PID)
+      int passes (max # of processes allowed to pass this semaphore)
+      q_t wait_q (blocked PID's)
+
+main.c/data.h, add
+   sem_t sem[Q_SIZE];
+   unsigned short *ch_p;  // to check processes and a semaphore
+    
+main()
+   clear all bytes in the semaphore array
+   set vehicle_sid to -1 to indicate no semaphore allocated yet
+   fill out new entries in IDT with code addresses for events
+      IDT entry SEMALLOC_EVENT has SemAllocEvent
+      IDT entry SEMWAIT_EVENT as SemWaitEvent
+      IDT entry SEMPOST_EVENT as SemPostEvent
+
+events.h
+   new constants:
+      SEMALLOC_EVENT 102
+      SEMWAIT_EVENT 103
+      SEMPOST_EVENT 104
+   new prototypes:
+      SemAllocEvent
+      SemWaitEvent
+      SemPostEvent
+
+events.S
+   new code modules:
+      SemAllocEvent
+      SemWaitEvent
+      SemPostEvent
+
+services.c/.h
+   new service calls:
+      int SemAlloc(int), similar to GetPid()+Sleep() in code structure
+      void SemWait(int), similar to Sleep() in code structure
+      void SemPost(int), similar to Sleep() in code structure
+
+Kernel(...)
+   new switch() cases:
+      SEMALLOC_EVENT calls SemAllocHandler(...)
+      SEMWAIT_EVENT calls SemWaitHandler(...)
+      SEMPOST_EVENT calls SemPostHandler(...)
+   A new key event 'v' to create Vehicle process.
+
+services.c/.h
+   void SemReqISR(void), as described in 3.html
+   void SemPostISR(int sem_id), as described in 3.html
+   void SemWaitISR(int sem_id), as described in 3.html
+
+proc.c/.h
+   ...
+   #include "data.h"             // for vechicle_sid below
+   ...
+   void Init(void) {             // "mute" Init
+      int i;
+
+      while(1) {
+//       cons_printf("1..");  // Init shows its PID 1   <---- "mute" this
+         for(i=0; i<LOOP; i++) asm("inb $0x80"); // costs CPU a sec of work
+      }
+   }
+
+void Vehicle(void) {             // phase3 tester (multiple processes)
+   int i, my_pid;
+
+   if(vehicle_sid == -1) vehicle_sid = SemAlloc(3); // max passes 3
+   my_pid = GetPid();
+
+   while(1) {
+      ch_p[my_pid*80+45] = 0xf00 + 'f';     // show I'm off the bridge
+      for(i=0; i<LOOP; i++) asm("inb $0x80"); // spend a sec in RUN state
+      SemWait(vehicle_sid);                 // ask for a pass
+      ch_p[my_pid*80+45] = 0xf00 + 'o';     // show I'm on the bridge
+      Sleep(1);                             // a sec SLEEP state (holding pass)
+      SemPost(vehicle_sid);                 // return the pass
+   }
+}
+
+* Other places to update the state being displayed are: main.c (Scheduler),
+and several places in handlers.c (whenever the state of a process has just
+been changed).
+
+* The number representing the semaphore passes is shown in SemAllocHandler
+(when the semaphore is created), SemWaitHandler (when it is downcounted),
+and SemPostHandler (when it is upcounted).
