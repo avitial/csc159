@@ -68,7 +68,8 @@ int main() {
 	IDTEntrySet(0x66, SemAllocEvent);
   IDTEntrySet(0x67, SemWaitEvent);
   IDTEntrySet(0x68, SemPostEvent);
-  
+  IDTEntrySet(0x07, SysPrintEvent);
+
   outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
   
 	NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
@@ -79,7 +80,7 @@ int main() {
 } // end main()
 
 void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
-	char key;
+	//char key;
   
   pcb[current_pid].TF_p = TF_p; // save TF_P into the PCB of current_pid
   
@@ -103,11 +104,14 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
     case SEMPOST_EVENT:
       SemPostHandler(TF_p->eax);
       break;
+    case SYSPRINT_EVENT:
+      SysPrintHandler((char*) TF_p->eax);
+      break;
     default:
       cons_printf("Kernel Panic: unknown event_num %d!\n"); 
       breakpoint();
   }
-
+  /*
 	if(cons_kbhit()){ // if a key is pressed on Target PC
 		key = cons_getchar(); // get the key
 
@@ -124,7 +128,9 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
       case 'q':
 			  exit(0); // quit program
 		}
-	}
+  
+  }
+  */
 	Scheduler(); // call scheduler to select current_pid (if needed)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
 } // end Kernel()

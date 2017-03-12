@@ -58,3 +58,13 @@ void SemPost(int sid){
     : "g" (sid)
   );
 }
+
+void SysPrint(char *str){
+    asm("pushl %%eax;
+    movl %0, %%eax;
+    int $0x07; 
+    popl %%eax"
+    :
+    : "g" (char *str)
+    );
+}

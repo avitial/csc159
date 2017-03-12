@@ -128,5 +128,8 @@ void SemPostHandler(int sid){
     ch_p[48] = 0xf00 + sem[sid].passes + '0';
   //  cons_printf("SEMPOST: passes = %d\t", sem[sid].passes);
   }
-
 }
+
+void SysPrintHandler(char *str){
+  
+
