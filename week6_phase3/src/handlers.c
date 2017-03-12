@@ -66,10 +66,11 @@ void TimerHandler(void){
   // phase 2
   for(i=0; i<Q_SIZE; i++){  
     if((pcb[i].state == SLEEP) && (pcb[i].wake_time == current_time)){
+      
       pid = DeQ(&sleep_q); 
       EnQ(pid, &ready_q); // append pid to readu_q
-      pcb[pid].state = READY; // update proc state
-      ch_p[i*80+43] = 0xf00 +'r';
+      pcb[i].state = READY; // update proc state
+      ch_p[pid*80+43] = 0xf00 +'r';
     }
   }
   outportb(0x20, 0x60); /// Don't forget: notify PIC event-handling done
@@ -77,7 +78,7 @@ void TimerHandler(void){
 
 void SleepHandler(int sleep_amount){
   pcb[current_pid].wake_time = (current_time + 100 * sleep_amount); // calc future wake time in pcb
-  EnQ(current_pid, &sleep_q);
+ EnQ(current_pid, &sleep_q);
   pcb[current_pid].state = SLEEP; // update proc state
   ch_p[current_pid*80+43] = 0xf00 +'S';
   current_pid = 0; // reset current_pid
@@ -95,7 +96,9 @@ void SemAllocHandler(int passes){
   sem[sid].owner = current_pid;
   sem[sid].passes = passes;
   MyBzero((char *)&sem[sid].wait_q, Q_SIZE);
+  sem[sid].wait_q.size = 0; 
   pcb[current_pid].TF_p -> ebx = sid; 
+  
 }
 
 void SemWaitHandler(int sid){
@@ -111,13 +114,15 @@ void SemWaitHandler(int sid){
 }
 
 void SemPostHandler(int sid){
-  if(!(sem[sid].wait_q.size == 0)){
-    int free_pid = DeQ(&sem[sid].wait_q);
+  int free_pid=0;
+  if((sem[sid].wait_q.q[0] != 0)){
+    free_pid = DeQ(&sem[sid].wait_q);
     EnQ(free_pid, &ready_q);
-    pcb[current_pid].state = READY;
+    pcb[free_pid].state = READY;
     ch_p[free_pid*80+43] = 0xf00 +'r';
   } else{
-    sem[sid].passes = sem[sid].passes +1;
+    sem[sid].passes++;// = sem[sid].passes +1;
     ch_p[48] = 0xf00 + sem[sid].passes + '0';
   }
+
 }

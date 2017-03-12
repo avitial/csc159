@@ -34,12 +34,11 @@ void UserProc(void) {
 
 void Vehicle(void){ //phase 3 tester (multiple processes)
   int i, pid;
-
+  int sleep_amount = 1;
   if(vehicle_sid == -1){
     vehicle_sid = SemAlloc(3); //max passes 3
   }
   pid = GetPid();
-
   while(1){
     ch_p [pid*80+45]= 0xf00 + 'f';  //show i'm off the bridge
     
@@ -48,7 +47,7 @@ void Vehicle(void){ //phase 3 tester (multiple processes)
     }
     SemWait(vehicle_sid);           //ask for a pass
     ch_p[pid*80+45] = 0xf00 + 'o'; //show i'm on the bridge
-    Sleep(1);
+    Sleep(sleep_amount);
     SemPost(vehicle_sid);             //return the pass
   }
 }

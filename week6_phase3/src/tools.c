@@ -8,9 +8,8 @@
 void MyBzero(char *p, int size) {
 	int i;
 	for(i=0; i<size; i++){
-    *p = 0 + '0';
-    //cons_printf("mbz @ %d is %c\n", i, *p);
-    p++;
+    //*p = 0 + '0';
+    *p++=0;
   }
 }
 

@@ -17,7 +17,7 @@ void Sleep(int sleep_amount){ // function receives arguments, return an integer
 
 	asm("pushl %%eax;
 		int $0x65;
-		movl %%eax, %0;
+		movl %0, %%eax;
 		popl %%eax"
 		:
 		: "g" (sleep_amount)	//when having an input, e.g., # of seconds to sleep, the input line will b : "g" (seconds)

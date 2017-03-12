@@ -15,7 +15,7 @@ q_t ready_q, free_q, sleep_q; // processes ready to run and not used
 pcb_t pcb[PROC_NUM]; // process control blocks
 char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 struct i386_gate *IDT_p;
-unsigned short *ch_p = 0xB8000; // init ch_p pointer to vga
+unsigned short *ch_p = (unsigned short*)0xB8000; // init ch_p pointer to vga
 sem_t sem[Q_SIZE];
 
 void IDTEntrySet(int event_num, func_ptr_t event_addr){
@@ -44,6 +44,8 @@ int main() {
   MyBzero((char *)&free_q, Q_SIZE);
   MyBzero((char *)&ready_q, Q_SIZE);
   MyBzero((char *)&sleep_q, Q_SIZE);
+  MyBzero((char *)&sem[0].wait_q, Q_SIZE);
+  //MyBzero((char *)&sem[0], (sizeof(sem_t))*Q_SIZE);
   for(i=0; i<Q_SIZE; i++){
     MyBzero((char *)&sem[i], Q_SIZE);
     sem[i].owner = 0; 
