@@ -18,6 +18,7 @@
 #define SEMALLOC_EVENT 0x66 // IDT entry #012, for sem alloc event
 #define SEMWAIT_EVENT 0x67  // IDT entry #103, for sem wait event
 #define SEMPOST_EVENT 0x68  // IDT entry #104, for sem post event
+#define SYSPRINT_EVENT 0x07 // IDT entry #07, for sys print event
 
 #ifndef ASSEMBLER  // skip below if ASSEMBLER defined (from an assembly code)
                    // since below is not in assembler syntax
@@ -32,6 +33,7 @@ extern void SleepEvent();		 // coded in events.S, code for Kernel Services
 extern void SemAllocEvent(); // coded in events.S, code for Semaphores 
 extern void SemWaitEvent();  // coded in events.S, code for Semaphores
 extern void SemPostEvent();  // coded in events.S, code for Semaphores
+extern void SysPrintEvent(); // coded in events.S, code for SysPrint
 
 __END_DECLS
 

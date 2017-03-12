@@ -10,10 +10,24 @@
 
 // Init PID 1, always ready to run, never preempted
 void Init(void) {
+  char key; 
   int i;
 
   while(1){
-	  //cons_printf("%d..", 1); //show on Target PC: "1.." (since Init has PID 1 as we know)      
+  if(cons_kbhit()){ // if a key is pressed on Target PC
+    key = cons_getchar(); // get the key
+
+    switch(key){ // switch by the key obtained {
+      case 'b':
+        breakpoint(); // go into gdb
+        break;
+      case 'p':
+        SysPrint((char*)&str_to_print); // call Vehicle to create vehicle proc
+        break;
+      case 'q':
+        exit(0); // quit program
+    }
+  //cons_printf("%d..", 1); //show on Target PC: "1.." (since Init has PID 1 as we know)      
 	  for(i=0; i<FAST_LOOP; i++){ //loop for LOOP times { // to cause approx 1 second of delay
       asm("inb $0x80"); // call asm("inb $0x80") which delay .6 microsecond
     }
