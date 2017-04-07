@@ -1,0 +1,224 @@
+CodingHints.txt, Phase 5, Device Driver: "Interrupt Driven"
+
+Run demo:
+   Single terminal (Terminal1, COM2 port, IRQ3, I/O # 0x2f8)
+   Double terminal (add Terminal2, COM3 port, IRQ4, I/O # 0x3e8)
+
+1. type.h has new stuff:
+** #define TIME_LIMIT 10     // fast process switch scheduling
+   #define PORT_NUM 3        // 3 extra serial ports: COM2/3/4
+   #define BUFF_SIZE 101     // 100 data char + delimiter null char
+   typedef struct {
+   int owner,                // allocation mark
+       IO,                   // I/O map #
+       write_sid,            // write flow-control sid
+       read_sid,             // read flow-control sid
+       write_ok;             // write available flag
+   q_t write_q,              // write buffer
+       read_q,               // read buffer
+       loopback_q;           // loopback buffer
+   } port_t;
+
+2. main.c/data.h:
+   declare new kernel data "port_t port[PORT_NUM]"
+
+3. events.S/.h:
+   new constants are
+      define PORT_EVENT 35        // this + 1 is IRQ 4
+      define PORTALLOC_EVENT 106
+      define PORTWRITE_EVENT 107
+      define PORTREAD_EVENT 108
+   and code their associated new event modules in events.S
+
+4. main():
+   5 new fill_gate calls to register new entries into IDT
+   set PIC mask for multiple IRQ's (0, 3, and 4)
+   add one (two) process creation call(s) for TermProc (in pro.c/.h).
+** clear owner info (set it to 0) in all port[].owner
+
+5. Kernel():
+      ...
+      add new cases to call respective event handlers:
+         PortHandler(); // to handle PORT_EVENT
+         PortAllocHandler(&TF_p->eax); // passing EAX addr to be filled out
+         PortWriteHandler((char)TF_p->eax, TF_p->ebx); // passing char and port #
+         PortReadHandler((char *)TF_p->eax, TF_p->ebx); // passing char addr and port #
+
+6. The upper half is process "void TermProc(void)," coded like this in proc.c/.h:
+   int my_port;
+   char str_read[BUFF_SIZE]; // size 101
+   my_port = PortAlloc(); // init port device and port_t data associated
+   loop forever {
+      PortWrite("Hello, World! Team xxx here!\n\r", my_port); // \r also!
+      PortWrite("Now enter: ", my_port);
+      PortRead(str_read, my_port);
+      cons_printf("Read from port #%d: %s\n", my_port, str_read);
+   }
+
+7. services.c/.h:
+   int PortAlloc(void) { // request a serial port # to read/write
+      int port_num;
+      asm("pushl ...
+           int $xxx
+           movl ...
+           popl ...
+          : ...
+          :
+          );
+      after getting port_num, Sleep for a second
+      call SemAlloc(?) to allocate for write_sid in port data allocated
+      call SemAlloc(?) to allocate for read_sid in port data allocated
+***** set size of read_q to 0 (KB may have bufferred extra char as space bar pressed)
+      return port_num;
+   } // end int PortAlloc...
+
+   void PortWrite(char *p, int port_num) { // prompt char string to terminal
+      // loop thru string: sem-wait and then call "int xxx" to write a char
+      loop while what p points to has something to print (not null) {
+         call SemWait(?) for checking if the write buffer has space
+         asm("pushl ...
+              pushl ...
+              movl ...
+              movl ...
+              int $xxx
+              popl ...
+              popl ...
+             :
+             : ..., ... // two input items
+             );
+         advance the address in p to next character
+      } // while loop
+   }
+
+   void PortRead(char *p, int port_num) { // to read terminal KB
+      int size;
+      // loop: sem-wait then "int xxx" to get a char until \r (or size limit)
+      set size to 0
+      loop forever {             // break at \r or at BUFF_SIZE-1
+         call SemWait(...);      // flow-control
+         asm("pushl...
+              pushl...
+              movl...
+              movl...
+              int $xxx
+              popl...
+              popl...
+             :
+             : ..., ... // two inputs: p (addr for getting a char) and port #
+             );
+         break loop if what p points to is filled out with '\r'
+         advance addr p to next character
+         increment size by 1
+         break loop if size reaching BUFF_SIZE-1
+      } // end of forever loop
+      where p points to is set to '\0'  // null-terminate str, overwirte \r
+   }
+
+8. handlers.c/.h:
+   void PortWriteOne(int port_num) {  // snd one char to port
+      char one;
+
+      if both write_q and loopback_q of port data are empty {
+         set write_ok of port data to 1  // record missing write event
+         return;
+      }
+
+      if loopback_q of port data has something to show on terminal:
+         DeQ 'one' from loopback_q
+      else:
+         DeQ 'one' from write_q
+         post semapohre with write_sid of port data: SemPostHandler(port[#].write_sid)
+
+      call outportb to send 'one' to DATA register of port: outportb(port[#].IO+DATA, one);
+
+      set write_ok of port data to 0     // will use write event below
+   } // end of PortWriteOne(...
+
+   void PortReadOne(int port_num) {                // got one char from port
+      char one;
+      call one = inportb to get 'one' from port DATA register
+
+      if read_q.size of port data is already Q_SIZE:
+         cons_printf("Kernel Panic: your typing on terminal is super fast!\n");
+         return;
+
+      EnQ 'one' to read_q of port data
+      EnQ 'one' to loopback_q of port data
+      if 'one' is '\r' then also EnQ '\n' to loopback_q // add NL after CR
+
+      SemPostHandler(port[port_num].read_sid);    // flow-control post/continue to read
+   } // end of PortReadOne(...
+
+   void PortHandler(void) {         // IRQ3/4 event handler
+      int port_num, intr_type;
+
+      do these below using port data (of each terminal)
+         set intr_type by calling inportb at IIR register of port
+         if intr_type is IIR_RXRDY, call PortReadOne(port_num) // can read one
+         if intr_type is IIR_TXRDY, call PortWriteOne(port_num) // can write one
+         if write_ok of port data is 1, call PortWriteOne(port_num); // can also write
+
+      call outportb to dismiss both IRQ 3 and 4
+   } // end PortHandler...
+
+   // allocate a serial port, set hardware and associated data:
+   // transmit speed 9600 bauds, clear IER, accept TXRDY and RXRDY events
+   //    COM1~8_IOBASE: 0x3f8 0x2f8 0x3e8 0x2e8 0x2f0 0x3e0 0x2e0 0x260
+   //    IIR: Intr Indicator Reg
+   //    IER: Intr Enable Reg
+   //    ETXRDY: Enable Xmit Ready
+   //    ERXRDY: Enable Recv Ready
+   //    MSR: Modem Status Reg
+   //    MCR: Modem Control Reg
+   //    LSR: Line Status Reg
+   //    CFCR: Char Format Control Reg
+   //    LSR_TSRE: Line Status Reg, Xmit+Shift Regs Empty
+   void PortAllocHandler(int *eax) {
+      int port_num, baud_rate, divisor;
+      static int IO[PORT_NUM] = { 0x2f8, 0x3e8, 0x2e8 };
+
+      search each port data (loop index port_num from 0 to PORT_NUM-1):
+         if its owner is zero, break loop // found one
+
+      if none found (port_num reaches PORT_NUM):
+         cons_printf("Kernel Panic: no port left!\n");
+         return;
+
+      write port_num at where eax point to // service call can return it
+
+      call MyBzero to clear the allocated port data
+      set its owner to current_pid
+      set its I/O to the I/O map # from the IO array (named above)
+      set its write_ok to 1                // OK to 1st write
+
+   // set baud, Control Format Control Register 7-E-1 (data- parity-stop bits)
+   // raise DTR, RTS of the serial port to start read/write
+      baud_rate = 9600;
+      divisor = 115200 / baud_rate;                        // time period of each baud
+      outportb(port[port_num].IO+CFCR, CFCR_DLAB);         // CFCR_DLAB is 0x80
+      call outportb to set its BAUDLO to LOBYTE(divisor)
+      call outportb to set its BAUDHI to HIBYTE(divisor)
+      call outportb to set its CFCR to CFCR_PEVEN|CFCR_PENAB|CFCR_7BITS
+      call outportb to set its IER to 0
+      call outportb to set its MCR to MCR_DTR|MCR_RTS|MCR_IENABLE
+      asm("inb $0x80");                                     // let port have react time
+      call outportb to set its IER to IER_ERXRDY|IER_ETXRDY // enable TX/RX event types
+   } // end PortAllocHandler...
+
+   void PortWriteHandler(char one, int port_num) { // to buffer one, actually
+      if write_q of port data is full:
+         cons_printf("Kernel Panic: terminal is not prompting (fast enough)?\n");
+         return;
+
+      EnQ one to its write_q                                      // buffer one
+ **** if write_ok of port data is 1, call PortWriteOne(port_num)  // can write one
+   }
+
+   void PortReadHandler(char *one, int port_num) { // to read from buffer, actually
+      if read_q is empty:
+         cons_printf("Kernel Panic: nothing in typing/read buffer?\n");
+         return;
+
+      write at where one points to with the character dequeued from read_q
+   } // end PortReadHandler
+
