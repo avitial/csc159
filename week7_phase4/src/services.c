@@ -65,6 +65,6 @@ void SysPrint(char *str){
     int $0x07; 
     popl %%eax"
     :
-    : "g" (char *str)
+    : "g" (str)
     );
 }
