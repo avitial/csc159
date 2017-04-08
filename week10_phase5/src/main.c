@@ -17,6 +17,7 @@ char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 struct i386_gate *IDT_p;
 unsigned short *ch_p = (unsigned short*)0xB8000; // init ch_p pointer to vga
 sem_t sem[Q_SIZE];
+port_t port[PORT_NUM];
 
 void IDTEntrySet(int event_num, func_ptr_t event_addr){
    struct i386_gate *IDT_tbl = &IDT_p[event_num];
@@ -46,11 +47,15 @@ int main() {
    MyBzero((char *)&sleep_q, Q_SIZE);
    MyBzero((char *)&sem[0].wait_q, Q_SIZE);
    MyBzero((char *)&sem[0], (sizeof(sem_t))*Q_SIZE);
+   
    for(i=0; i<Q_SIZE; i++){
-      MyBzero((char *)&sem[i], Q_SIZE);
+      MyBzero((char *)&sem[i], (sizeof(sem))*Q_SIZE);
       sem[i].owner = 0; 
       sem[i].passes = 0;
   }
+  port[0].owner = 0;
+  port[1].owner = 0;
+  port[2].owner = 0;
 
   current_time = 0; // init current time 
   vehicle_sid = -1; // vehicle proc running
@@ -68,14 +73,21 @@ int main() {
    IDTEntrySet(0x66, SemAllocEvent);
    IDTEntrySet(0x67, SemWaitEvent);
    IDTEntrySet(0x68, SemPostEvent);
-   IDTEntrySet(0x07, SysPrintEvent);
-
-   outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
+   IDTEntrySet(0x69, SysPrintEvent);
+   IDTEntrySet(0x23, PortEvent);
+   IDTEntrySet(0X6A, PortAllocEvent);
+   IDTEntrySet(0X6B, PortWriteEvent);
+   IDTEntrySet(0X6C, PortReadEvent);
   
+   outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
+   outportb(0x20, ~0x00); //IRQ0
+   outportb(0x23, ~0x03);//IRQ3
+   outportb(0x24, ~0x04);//IRQ4
    NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
    Scheduler(); // call scheduler to select current_pid (if needed)
    Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
-	
+	NewProcHandler(TermProc);
+
    return 0; // compiler needs for syntax altho this statement is never exec
 } // end main()
 
@@ -106,6 +118,18 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
       case SYSPRINT_EVENT:
          SysPrintHandler((char*) TF_p->eax);
          break;
+      case PORT_EVENT:
+        PortHandler();
+        break;
+      case PORTALLOC_EVENT:
+        PortAllocHandler(&TF_p->eax);
+        break;
+      case PORTWRITE_EVENT:
+        PortWriteHandler((char)TF_p->eax, TF_p->ebx);
+        break;
+      case PORTREAD_EVENT:
+        PortReadHandler((char *)TF_p->eax, TF_p->ebx);
+        break;
       default:
          cons_printf("Kernel Panic: unknown event_num %d!\n"); 
          breakpoint();

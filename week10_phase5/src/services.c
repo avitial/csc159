@@ -59,12 +59,26 @@ void SemPost(int sid){
   );
 }
 
-void SysPrint(char *str){
+void SysPrint(int *str){
     asm("pushl %%eax;
     movl %0, %%eax;
-    int $0x07; 
+    int $0x69; 
     popl %%eax"
     :
     : "g" (str)
     );
 }
+
+int PortAlloc(void){
+  int port_num;
+  return port_num;
+}
+
+void PortWrite(char *p, int port_num){
+  return;
+}
+
+void PortRead(char *p, int port_num){
+  return;
+}
+

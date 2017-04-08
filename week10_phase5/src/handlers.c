@@ -22,7 +22,7 @@ void NewProcHandler(func_ptr_t p){  // arg: where process code starts
   pcb[pid].state = READY;
   EnQ(pid, &ready_q);
 
-  pcb[pid].TF_p = (TF_t *)&proc_stack[pid][4032]; // point TF_p to highest area in stack
+  pcb[pid].TF_p = (TF_t *)&proc_stack[pid][PROC_STACK_SIZE]; // point TF_p to highest area in stack
   
   // then fill out the eip of the TF
 	pcb[pid].TF_p->eip = (int) p; // new process code
@@ -163,5 +163,23 @@ void SysPrintHandler(char *str){
       }
       str++;        // move to print next character
    }              // while(*str)
+}
+
+void PortHandler(void){
+  int port_num, intr_type;
+  return;
+}
+
+void PortAllocHandler(int *eax){
+  int port_num, baud_rate, divisor;
+  return;
+}
+
+void PortWriteHandler(char one, int port_num){
+   return;
+}
+
+void PortReadHandler(char *one, int port_num){
+  return;
 }
 

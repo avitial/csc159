@@ -67,3 +67,7 @@ void Vehicle(void){ //phase 3 tester (multiple processes)
     SemPost(vehicle_sid);             //return the pass
   }
 }
+
+void TermProc(void){
+
+}

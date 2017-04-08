@@ -8,5 +8,9 @@ void Sleep(int);
 int SemAlloc(int);
 int SemWait(int);
 int SemPost(int);
-void SysPrint(char); 
+void SysPrint(int); 
+int PortAlloc(void);
+void PortWrite(char, int);
+void PortRead(char, int);
+
 #endif
