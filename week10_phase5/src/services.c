@@ -96,7 +96,7 @@ void PortWrite(char *p, int port_num){
        popl %%ebx;
        popl %%eax;"
        :
-       : "g" ((int)*p), "g" (port_num)
+       : "g" ((int)p), "g" (port_num)
     );
     p++;
   }
@@ -114,7 +114,7 @@ void PortRead(char *p, int port_num){
       popl %%ebx;
       popl %%eax;"
       :
-      : "g" ((int)*p), "g" (port_num)
+      : "g" ((int)p), "g" (port_num)
     );
     p++;
     size++;

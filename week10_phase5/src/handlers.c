@@ -224,15 +224,57 @@ void PortHandler(void){
 
 void PortAllocHandler(int *eax){
   int port_num, baud_rate, divisor;
+  static int IO[PORT_NUM] = {0x2f8, 0x3e8,0x2e8};
+
+  for(port_num=0; port_num <= PORT_NUM-1; port_num++){
+    if(port[port_num].owner == 0){
+      break;
+    }
+  }
+    if(port_num == PORT_NUM){
+    cons_printf("Kernel Panic: no port left!\n");
+    return;
+    }
+   *eax = port_num;
+   
+   MyBzero((char *)port[port_num].IO+DATA, sizeof(DATA));
+   port[port_num].owner = current_pid;
+   port[port_num].IO = IO[port_num];
+   port[port_num].write_ok = 1;
+   //set baud, Control Format Control Register 7-E-! (data- parity-stop bits)
+   //raise DTR RTS of the serial port to start read/write
+   baud_rate = 9600;
+   divisor = 115200 / baud_rate;
+   outportb(port[port_num].IO+CFCR, CFCR_DLAB);
+   outportb(port[port_num].IO+BAUDLO, LOBYTE(divisor));
+   outportb(port[port_num].IO+BAUDHI, HIBYTE(divisor));
+   outportb(port[port_num].IO+CFCR, CFCR_PEVEN|CFCR_PENAB|CFCR_7BITS);
+   outportb(port[port_num].IO+IER, 0);
+   outportb(port[port_num].IO+MCR, MCR_DTR|MCR_RTS|MCR_IENABLE);
+   asm("inb $0x80");
+   outportb(port[port_num].IO+IER, IER_ERXRDY|IER_ETXRDY);
+
   return;
 }
 
 void PortWriteHandler(char one, int port_num){
-   if(port[port_num].write_q.size == Q_SIZE);
+   if(port[port_num].write_q.size == Q_SIZE){
+    cons_printf("Kernel Panic: terminal is not prompting (fast enough)?\n");
+    return;
+   }
+   EnQ(one, &port[port_num].write_q);//buffer one
+   if(port[port_num].write_ok == 1){
+      PortWriteOne(port_num);
+   }
    return;
 }
 
 void PortReadHandler(char *one, int port_num){
+  if(port[port_num].read_q.size == 0){
+    cons_printf("Kernel Panic: nothing in typing/read buffer?\n");
+    return;
+  }
+  *one = DeQ(&port[port_num].read_q);
   return;
 }
 

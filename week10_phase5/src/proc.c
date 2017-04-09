@@ -71,8 +71,9 @@ void Vehicle(void){ //phase 3 tester (multiple processes)
 void TermProc(void){
   int my_port;
   char str_read[BUFF_SIZE]; // size 101
+  cons_printf("Term Proc launched successfully\n");
   my_port = PortAlloc(); // init port device and port_t data associated
-
+  
   while(1){
     PortWrite("Hello, World! Team GidOS here!\n\r", my_port); // \r also!
     PortWrite("Now enter: ", my_port);
