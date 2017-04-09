@@ -78,21 +78,21 @@ int main() {
    IDTEntrySet(0X6A, PortAllocEvent);
    IDTEntrySet(0X6B, PortWriteEvent);
    IDTEntrySet(0X6C, PortReadEvent);
-  
+   
    outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
-   outportb(0x21, ~0x00); //IRQ0
+   outportb(0x21, ~0x02); //IRQ0
    outportb(0x21, ~0x03); //IRQ3
    outportb(0x21, ~0x04); //IRQ4
+
    NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
+   //NewProcHandler(TermProc);
    Scheduler(); // call scheduler to select current_pid (if needed)
    Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
-	 NewProcHandler(TermProc);
-
+	 //NewProcHandler(TermProc);
    return 0; // compiler needs for syntax altho this statement is never exec
 } // end main()
 
 void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
-  
    pcb[current_pid].TF_p = TF_p; // save TF_P into the PCB of current_pid
   
   // switch according to the event_num in the TF TF_p points to {
