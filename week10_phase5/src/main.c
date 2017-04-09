@@ -80,13 +80,13 @@ int main() {
    IDTEntrySet(0X6C, PortReadEvent);
   
    outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
-   outportb(0x20, ~0x00); //IRQ0
-   outportb(0x23, ~0x03);//IRQ3
-   outportb(0x24, ~0x04);//IRQ4
+   outportb(0x21, ~0x00); //IRQ0
+   outportb(0x21, ~0x03); //IRQ3
+   outportb(0x21, ~0x04); //IRQ4
    NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
    Scheduler(); // call scheduler to select current_pid (if needed)
    Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
-	NewProcHandler(TermProc);
+	 NewProcHandler(TermProc);
 
    return 0; // compiler needs for syntax altho this statement is never exec
 } // end main()
