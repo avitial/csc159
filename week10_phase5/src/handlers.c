@@ -164,9 +164,61 @@ void SysPrintHandler(char *str){
       str++;        // move to print next character
    }              // while(*str)
 }
+void PortWriteOne(int port_num){
+  char one;
+  
+  if(port[port_num].write_q.size == 0 && port[port_num].loopback_q.size == 0){
+    port[port_num].write_ok = 1; // record missing write event
+    return;
+  }
+
+  if(port[port_num].loopback_q.size != 0){
+    one = DeQ(&port[port_num].loopback_q);
+  } else{
+    one = DeQ(&port[port_num].write_q);
+    SemPostHandler(port[port_num].write_sid);
+  }
+  outportb(port[port_num].IO+DATA, one);
+  port[port_num].write_ok = 0; // will use write event below
+  return;
+} // end of PortWriteOne();
+
+void PortReadOne(int port_num){
+  char one;
+  one = inportb(port[port_num].IO+DATA);
+  if(port[port_num].read_q.size == Q_SIZE){
+    cons_printf("Kernel Panic: you are typing on terminal is super fast!\n");
+    return;
+  }
+  EnQ(one, &port[port_num].read_q);
+  EnQ(one, &port[port_num].loopback_q);
+  if(one == '\r'){
+    EnQ('\n', &port[port_num].loopback_q);
+  }
+  SemPostHandler(port[port_num].read_sid);  
+  return;
+} // end of PortReadOne();
 
 void PortHandler(void){
-  int port_num, intr_type;
+  int port_num, intr_type; 
+  
+  for(port_num=0; port_num<PORT_NUM; port_num++){ // PORT_NUM equals 3 (COM Ports 2, 3 4)
+    while((intr_type = inportb(port[port_num].IO +IIR))){ // set
+      switch(intr_type){
+        case IIR_RXRDY:
+          PortReadOne(port_num);
+          break;
+        case IIR_TXRDY:
+          PortWriteOne(port_num);
+          break;
+      }
+      if(port[port_num].write_ok == 1){
+        PortWriteOne(port_num);
+      }
+    }
+  }
+  outportb(0x20, 0x23); // dismiss IRQ3 
+  outportb(0x20, 0x24); // dismiss IRQ4
   return;
 }
 
@@ -176,6 +228,7 @@ void PortAllocHandler(int *eax){
 }
 
 void PortWriteHandler(char one, int port_num){
+   if(port[port_num].write_q.size == Q_SIZE);
    return;
 }
 

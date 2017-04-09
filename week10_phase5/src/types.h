@@ -54,9 +54,9 @@ typedef struct {             // PCB describes proc image
    TF_t *TF_p;               // points to trapframe of process
 } pcb_t;
 
-typedef struct {             // generic queue type
-   int q[Q_SIZE];            // integers are queued in q[] array
-   int size;     // size is also where the tail is for new data
+typedef struct {  // generic queue type
+   int q[Q_SIZE]; //integers are queued in q[] array
+   int size;  // size is also where the tail is for new data
 } q_t;
 
 typedef struct {
