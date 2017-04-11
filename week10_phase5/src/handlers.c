@@ -272,9 +272,9 @@ void PortWriteHandler(char one, int port_num){
 void PortReadHandler(char *one, int port_num){
   if(port[port_num].read_q.size == 0){
     cons_printf("Kernel Panic: nothing in typing/read buffer?\n");
-    breakpoint();
     return;
   }
+  EnQ('K', &port[port_num].read_q);
   *one = DeQ(&port[port_num].read_q);
   return;
 }

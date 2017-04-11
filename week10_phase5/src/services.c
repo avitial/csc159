@@ -79,8 +79,8 @@ int PortAlloc(void){
   :
   );
   Sleep(1);
-  port[port_num].write_sid = SemAlloc(port_num);
-  port[port_num].read_sid = SemAlloc(port_num);
+  port[port_num].write_sid = SemAlloc(Q_SIZE);
+  port[port_num].read_sid = SemAlloc(Q_SIZE);
   port[port_num].read_q.size = 0;
   return port_num;
 }
@@ -96,7 +96,7 @@ void PortWrite(char *p, int port_num){
        popl %%ebx;
        popl %%eax;"
        :
-       : "g" (p), "g" (port_num)
+       : "g" ((int)*p), "g" (port_num)
     );
     p++;
   }
@@ -105,7 +105,7 @@ void PortWrite(char *p, int port_num){
 
 void PortRead(char *p, int port_num){
   int size = 0;
-  while(p != '\r' || size != BUFF_SIZE -1){
+  while(*p != '\r' || size != BUFF_SIZE -1){
     asm("pushl %%eax;
       pushl %%ebx;
       movl %1, %%eax; 
@@ -114,7 +114,7 @@ void PortRead(char *p, int port_num){
       popl %%ebx;
       popl %%eax;"
       :
-      : "g" (p), "g" (port_num)
+      : "g" ((int)p), "g" (port_num)
     );
     p++;
     size++;
