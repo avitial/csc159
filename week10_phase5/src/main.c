@@ -80,10 +80,10 @@ int main() {
    IDTEntrySet(0X6C, PortReadEvent);
    
    outportb(0x21, ~0x25); // set PIC mask to open up for IRQ0, IRQ1, IRQ3 and IRQ4 
-   NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
+   NewProcHandler(TermProc); // call NewProcHandler(Init) to create Init proc
    Scheduler(); // call scheduler to select current_pid (if needed)
    Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
-	 NewProcHandler(TermProc);
+//	 NewProcHandler(TermProc);
    return 0; // compiler needs for syntax altho this statement is never exec
 } // end main()
 
