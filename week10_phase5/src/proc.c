@@ -27,6 +27,7 @@ void Init(void) {
             break;
          case 'q':
             exit(0); // quit program
+            break;
          }
       }
   //cons_printf("%d..", 1); //show on Target PC: "1.." (since Init has PID 1 as we know)      
