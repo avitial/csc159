@@ -10,6 +10,7 @@ void MyBzero(char *p, int size) {
 	for(i=0; i<size; i++){
     //*p = 0 + '0';
     *p++=0;
+    //p++;
   }
 }
 

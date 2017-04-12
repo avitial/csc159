@@ -96,7 +96,7 @@ void SemAllocHandler(int passes){
   }
   sem[sid].owner = current_pid;
   sem[sid].passes = passes;
-  MyBzero((char *)&sem[sid].wait_q, Q_SIZE);
+  MyBzero((char *)&sem[sid].wait_q, sizeof(sem_t)*Q_SIZE);
   sem[sid].wait_q.size = 0; 
   pcb[current_pid].TF_p -> ebx = sid; 
   
@@ -237,7 +237,7 @@ void PortAllocHandler(int *eax){
     }
    *eax = port_num;
    
-   MyBzero((char *)port[port_num].IO+DATA, sizeof(DATA));
+   MyBzero((char *)port[port_num].IO+DATA, sizeof(port_t)*DATA);
    port[port_num].owner = current_pid;
    port[port_num].IO = IO[port_num];
    port[port_num].write_ok = 1;
@@ -274,6 +274,7 @@ void PortReadHandler(char *one, int port_num){
     cons_printf("Kernel Panic: nothing in typing/read buffer?\n");
     return;
   }
+  EnQ('K', &port[port_num].read_q);
   *one = DeQ(&port[port_num].read_q);
   return;
 }

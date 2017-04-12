@@ -11,7 +11,7 @@ int SemWait(int);
 int SemPost(int);
 void SysPrint(int); 
 int PortAlloc(void);
-void PortWrite(char, int);
-void PortRead(char, int);
+void PortWrite(char *, int);
+void PortRead(char *, int);
 
 #endif

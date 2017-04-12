@@ -27,6 +27,7 @@ void Init(void) {
             break;
          case 'q':
             exit(0); // quit program
+            break;
          }
       }
   //cons_printf("%d..", 1); //show on Target PC: "1.." (since Init has PID 1 as we know)      
@@ -71,9 +72,7 @@ void Vehicle(void){ //phase 3 tester (multiple processes)
 void TermProc(void){
   int my_port;
   char str_read[BUFF_SIZE]; // size 101
-  cons_printf("Term Proc launched successfully\n");
   my_port = PortAlloc(); // init port device and port_t data associated
-  
   while(1){
     PortWrite("Hello, World! Team GidOS here!\n\r", my_port); // \r also!
     PortWrite("Now enter: ", my_port);
