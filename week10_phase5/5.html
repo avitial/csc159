@@ -1,0 +1,160 @@
+<html><head><title>CpE/CSc 159 Phase 5</title></head>
+<body>
+<small><i>
+Sacramento State<br>
+Computer Engineering/Computer Science<br>
+CpE/CSc 159 Operating System Pragmatics (Spring 2017)<br>
+</i></small>
+
+<p>
+<center><big><b>Phase 5 &nbsp;
+Device Driver:"Interrupt Driven"</b></big><br>
+</center>
+<p>
+
+<h3>Goals</h3>
+<ol>
+<li>
+The goal of this phase is to learn how a device driver that handles
+two-way communication works and to be incorporated into an OS to serve
+processes to interact with users at peripherals such as <tt>terminal</tt>
+devices (TTY, teletype)</tt>.
+<p>
+<li>
+The test will be done by a terminal process that is to send and receive
+text data via a serial data port. This is usually called the <i>upper-half</i>
+in driver software. The <i>lower half</i> of the software is the handler code
+triggered by the electronics of the port. The PC <i>IRQ</i> numbers 3 and 4
+are the designated interrupt wires that eventually evoke the OS event handler
+<i>PortHandler()</i>.
+<p>
+<li>
+Besies a hardware port there is a software <i>port_t</i> data structure
+that interfaces both halves of the device driver. It buffers input and
+output with the use of semaphores to <i>flow control</i> the buffers.
+It also contains other information about the port.
+<p>
+</ol>
+
+<h3>The Upper and Lower Halves</h3>
+<ol>
+<li>
+A device-driver upper-half is a process that requests a read or
+write via I/O data buffers. The lower-half is a handler which
+also read/write the I/O buffers but only does this asynchronously
+from the upper-half (whence IRQ events occur).
+<p>
+<li>
+The serial ports in a PC used to connect to terminals are <tt>COM2</tt>
+and <tt>COM3</tt> ports. As a port event occurs, either IRQ 3 or 4 is
+sent to the PIC. The event numbers are 35 and 36. The PIC mask must be
+set to open up for them  (added to the original timer IRQ 0). The handler
+code must in the end dismiss the events (with PIC).
+<p>
+<li>
+The handler <i><b>PortHandler</i></b> reads an <i>Interrupt Indicator
+Register</i> (IIR) from the port circuit. On event <tt>TXRDY</tt>
+(Transmit Ready), a character from the port write data buffer is sent
+to the port data register. On event <tt>RXRDY</tt> (Receive Ready), the
+handler to read from the port data register and enqueue it to the read
+data buffer. There are semaphores to flow-control the use of the buffers 
+between a process (upper half) and the handler code (lower half).
+<p>
+<li>
+A special condition must be understood and treated. As a port is reset,
+it is ready to accept transmission (a TXRDY event is assumed). Also,
+after sending the last character to the port, the subsequent TXRDY will
+have no more character to send. So the handler code must save the information
+of this port condition in a flag in order to start sending as new transmission
+is requested by a process.
+<p>
+</ol>
+
+<h3>The Port Data Structure</h3>
+<ol>
+<li>
+What is to be prompted to the terminal is first queued to the write
+buffer, <tt>write_q</tt>, as it is called in the port data structure.
+The lower half, working in the background to handler IRQ events, dequeues
+this buffer and send it to the port data register (so it can be taken
+by the remote terminal to display).
+<p>
+<li>
+Semaphore <tt>write_sid</tt> is needed to flow-control between the two
+halves. The <i>passes</i> of the semaphore should start at the number
+of character spaces the buffer can handle. The upper half first calls
+the semaphore to wait before enqueuing a character into the write_q.
+The lower-half, conversely, will does semaphore-posting as a character
+is dequeued from it (to send out via the port).
+<p>
+<li>
+Corollarily, the two halves work jointly using semaphore <tt>read_sid</tt>
+flow-control the <tt>read_q</tt>. The <i>passes</i> of this semaphore
+should start at zero. As a character is typed at a terminal, arriving
+at the port, it triggers an IRQ event, and the handler will be called
+upon to read from the port and enqueue it to the read_q, and the code
+also does a semaphore-posting which can release the upper half.
+<p>
+<li>
+A third buffer <tt>loopback_q</tt> is to loop back the typing from the
+terminal. As each character is queued into the read_q, it is also queued
+to loopback_q.
+<p>
+<li>
+Hence, the lower-half must also check if there are characters in the
+loopback_q, besides the write_q. The handler code can be coded to favor
+the loopback_q over the write_q (or not, or evenly).
+Looping data back is the <i>full-duplex</i> communication mode to facilitate
+data verification to the originator. The loopback_q is not <i>flow-controlled</i>
+in our usage.
+<p>
+<li>
+A port and its associated data structrue is allocated via service all
+<tt>int PortAlloc(void)</tt>. Most information about the port will be set
+by <tt>void PortAllocHandler(void)</tt>, but the two semaphores are being
+allocated in the service call PortAlloc(), after the port number is returned.
+<p>
+<li>
+The PortAllocHandler() sets the serial-port communication parametrics:
+transmission speed 9600 bauds (bits per second), with a format: 7 data bits,
+even-parity check, and 1 stop bit. The handler also enables the two types
+of events TXRDY or RXRDY for IRQ.
+</ol>
+
+<h3>Deliverables</h3>
+<ol>
+As before, submit only source-code files (*.c *.h entry.S) to your team
+dropbox on host Voyager, in the designated phase folder.
+</ol>
+<p>
+
+<h3>Questions</h3>
+<ol>
+<li>
+How did you expand the use of multiple terminals?
+Hint: an array of port data, argument passing for common functions to know which
+port to use, and multiple sets of upper-half processes during the bootstrap.<pre>
+   IRQ 4 line: COM 1, 3, 5, and 7
+   IRQ 3: line COM 2, 4, 6, and 8
+   COM 1~8 I/O bases: 0x3f8 0x2f8 0x3e8 0x2e8 0x2f0 0x3e0 0x2e0 0x260</pre>
+<p>
+<li>
+How can we alter the code to favor process prompting over looping back typed
+characters from the terminal?
+<p>
+<li>
+Not showing what is typed when typing passwords is a loopback-disabling measures,
+how can we achieve this?
+<p>
+<li>
+How can a device driver be dynamically added/removed (hot-pluggable)?
+That is, can an OS starts without having a device driver, and later have
+it added/enrolled? Do we need a special kernel service?
+<p>
+<li>
+How would you expand the knowledge of handling multiple devices on a single
+IRQ line to understand how a <tt>bus controller</tt> works?
+(E.g., one IRQ line catering servicing devices on multiple COM ports.)
+<p>
+</ol>
+
