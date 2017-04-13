@@ -186,6 +186,7 @@ void PortWriteOne(int port_num){
 void PortReadOne(int port_num){
   char one;
   one = inportb(port[port_num].IO+DATA);
+  cons_printf("char one in portreadone is %c\n", one);
   if(port[port_num].read_q.size == Q_SIZE){
     cons_printf("Kernel Panic: you are typing on terminal is super fast!\n");
     return;
@@ -258,10 +259,12 @@ void PortAllocHandler(int *eax){
 }
 
 void PortWriteHandler(char one, int port_num){
+   
    if(port[port_num].write_q.size == Q_SIZE){
     cons_printf("Kernel Panic: terminal is not prompting (fast enough)?\n");
     return;
    }
+   cons_printf("char one in porwritehandler is %c\n", one);
    EnQ(one, &port[port_num].write_q);//buffer one
    if(port[port_num].write_ok == 1){
       PortWriteOne(port_num);

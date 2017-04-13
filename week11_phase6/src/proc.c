@@ -27,6 +27,7 @@ void Init(void) {
             break;
          case 'q':
             exit(0); // quit program
+            break;
          }
       }
   //cons_printf("%d..", 1); //show on Target PC: "1.." (since Init has PID 1 as we know)      
@@ -72,9 +73,8 @@ void TermProc(void){
   int my_port;
   char str_read[BUFF_SIZE]; // size 101
   my_port = PortAlloc(); // init port device and port_t data associated
-  
-  while(1){ // loop forever
-    PortWrite("Hello, World! Team GidOS here!\n\r", my_port);
+  while(1){
+    PortWrite("Hello, World! Team GidOS here!\n\r", my_port); // \r also!
     PortWrite("Now enter: ", my_port);
     PortRead(str_read, my_port);
     cons_printf("Read from port #%d: %s\n", my_port, str_read);

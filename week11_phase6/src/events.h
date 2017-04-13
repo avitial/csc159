@@ -19,8 +19,7 @@
 #define SEMWAIT_EVENT 0x67  // IDT entry #103, for sem wait event
 #define SEMPOST_EVENT 0x68  // IDT entry #104, for sem post event
 #define SYSPRINT_EVENT 0x69 // IDT entry #105, for sys print event
-// events for device driver, interrupt driven (phase5)
-#define PORT_EVENT 0x23		// IDT entry for IRQ4
+#define PORT_EVENT 0x24     // IDT entry for IRQ4
 #define PORTALLOC_EVENT 0x6A// IDT entry #106, for port alloc event
 #define PORTWRITE_EVENT 0x6B// IDT entry #107, for port write event
 #define PORTREAD_EVENT 0x6C // IDT entry #108, for port read event

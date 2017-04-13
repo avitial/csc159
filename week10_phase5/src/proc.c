@@ -79,4 +79,5 @@ void TermProc(void){
     PortRead(str_read, my_port);
     cons_printf("Read from port #%d: %s\n", my_port, str_read);
   }
+  return;
 }

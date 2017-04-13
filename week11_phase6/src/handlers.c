@@ -174,10 +174,10 @@ void PortWriteOne(int port_num){
 
   if(port[port_num].loopback_q.size != 0){
     one = DeQ(&port[port_num].loopback_q);
-  } else{
-    one = DeQ(&port[port_num].write_q);
-    SemPostHandler(port[port_num].write_sid);
-  }
+  } 
+  one = DeQ(&port[port_num].write_q);
+  SemPostHandler(port[port_num].write_sid);
+  
   outportb(port[port_num].IO+DATA, one);
   port[port_num].write_ok = 0; // will use write event below
   return;
@@ -192,6 +192,7 @@ void PortReadOne(int port_num){
   }
   EnQ(one, &port[port_num].read_q);
   EnQ(one, &port[port_num].loopback_q);
+  
   if(one == '\r'){
     EnQ('\n', &port[port_num].loopback_q);
   }
@@ -217,8 +218,10 @@ void PortHandler(void){
       }
     }
   }
-  outportb(0x20, 0x23); // dismiss IRQ3 
-  outportb(0x20, 0x24); // dismiss IRQ4
+  //outportb(0x20, 0x23); // dismiss IRQ3 
+  outportb(0x20, 0x63);
+  //outportb(0x20, 0x24); // dismiss IRQ4
+  outportb(0x20, 0x64);
   return;
 }
 
@@ -274,6 +277,7 @@ void PortReadHandler(char *one, int port_num){
     cons_printf("Kernel Panic: nothing in typing/read buffer?\n");
     return;
   }
+  EnQ('K', &port[port_num].read_q);
   *one = DeQ(&port[port_num].read_q);
   return;
 }

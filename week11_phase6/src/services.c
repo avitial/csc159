@@ -68,26 +68,27 @@ void SysPrint(int *str){
     : "g" (str)
     );
 }
-// request a serial port num to read/write
+
 int PortAlloc(void){
   int port_num;
   asm("pushl %%eax;
   int $0x6A;
-  movl %0, %%eax;
+  movl %%eax, %0;
   popl %%eax"
   : "=g" (port_num)
   :
   );
   Sleep(1);
-  port[port_num].write_sid = SemAlloc(port_num);
-  port[port_num].read_sid = SemAlloc(port_num);
+  port[port_num].write_sid = SemAlloc(Q_SIZE);
+  port[port_num].read_sid = SemAlloc(Q_SIZE);
   port[port_num].read_q.size = 0;
   return port_num;
 }
 
 void PortWrite(char *p, int port_num){
-  while(!p && *p != '\r'){
+  while(*p){
     SemWait(port_num);
+    //SemWait(port[port_num].write_sid);
     asm("pushl %%eax;
        pushl %%ebx;
        movl %1, %%eax; 
@@ -96,7 +97,7 @@ void PortWrite(char *p, int port_num){
        popl %%ebx;
        popl %%eax;"
        :
-       : "g" ((int)p), "g" (port_num)
+       : "g" ((int)*p), "g" (port_num)
     );
     p++;
   }
@@ -116,7 +117,7 @@ void PortRead(char *p, int port_num){
       :
       : "g" ((int)p), "g" (port_num)
     );
-    *p++;
+    p++;
     size++;
   } // end of forever loop
   *p = '\0'; // null-terminate str, overwrite \r

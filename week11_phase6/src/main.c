@@ -17,7 +17,7 @@ char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 struct i386_gate *IDT_p;
 unsigned short *ch_p = (unsigned short*)0xB8000; // init ch_p pointer to vga
 sem_t sem[Q_SIZE];
-port_t port[PORT_NUM]; // kernel data
+port_t port[PORT_NUM];
 
 void IDTEntrySet(int event_num, func_ptr_t event_addr){
    struct i386_gate *IDT_tbl = &IDT_p[event_num];
@@ -45,16 +45,15 @@ int main() {
    MyBzero((char *)&free_q, Q_SIZE);
    MyBzero((char *)&ready_q, Q_SIZE);
    MyBzero((char *)&sleep_q, Q_SIZE);
-   MyBzero((char *)&sem[0].wait_q, Q_SIZE);
-   MyBzero((char *)&sem[0], (sizeof(sem_t))*Q_SIZE);
+   //MyBzero((char *)&sem[0].wait_q, Q_SIZE);
+   //MyBzero((char *)&sem[0], (sizeof(sem_t))*Q_SIZE);
    
-  for(i=0; i<Q_SIZE; i++){
-    MyBzero((char *)&sem[i].wait_q, Q_SIZE);
-    MyBzero((char *)&sem[i], (sizeof(sem))*Q_SIZE);
-    sem[i].owner = 0; 
-    sem[i].passes = 0;
+   for(i=0; i<Q_SIZE; i++){
+      MyBzero((char *)&sem[i], (sizeof(sem_t))*Q_SIZE);
+     // sem[i].owner = 0; 
+     // sem[i].passes = 0;
   }
-  port[0].owner = 0; // clear owner info
+  port[0].owner = 0;
   port[1].owner = 0;
   port[2].owner = 0;
 
@@ -81,11 +80,11 @@ int main() {
    IDTEntrySet(0X6C, PortReadEvent);
    
    outportb(0x21, ~0x25); // set PIC mask to open up for IRQ0, IRQ1, IRQ3 and IRQ4 
-   NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
-   NewProcHandler(TermProc); // two calls of TermProc
-   NewProcHandler(TermProc);   
+   //NewProcHandler(Init);
+   NewProcHandler(TermProc); // call NewProcHandler(Init) to create Init proc
    Scheduler(); // call scheduler to select current_pid (if needed)
    Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
+//	 NewProcHandler(TermProc);
    return 0; // compiler needs for syntax altho this statement is never exec
 } // end main()
 
@@ -95,14 +94,14 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
   // switch according to the event_num in the TF TF_p points to {
    switch (TF_p->event_num){
       case TIMER_EVENT: // if it's timer event
-        TimerHandler(); // call timer event handler
-        break;
+         TimerHandler(); // call timer event handler
+         break;
       case SLEEP_EVENT:
-        SleepHandler(TF_p->eax);
-        break;
+         SleepHandler(TF_p->eax);
+         break;
       case GETPID_EVENT:
-        GetPidHandler(); // clal getpid event handler 
-        break;
+         GetPidHandler(); // clal getpid event handler 
+         break;
       case SEMALLOC_EVENT:
         SemAllocHandler(TF_p->eax);
         break;
@@ -110,26 +109,26 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
         SemWaitHandler(TF_p->eax);
         break;
       case SEMPOST_EVENT:
-        SemPostHandler(TF_p->eax);
-        break;
+         SemPostHandler(TF_p->eax);
+         break;
       case SYSPRINT_EVENT:
-        SysPrintHandler((char*) TF_p->eax);
-        break;
+         SysPrintHandler((char*) TF_p->eax);
+         break;
       case PORT_EVENT:
         PortHandler();
         break;
       case PORTALLOC_EVENT:
-        PortAllocHandler(&TF_p->eax); // passing eax addr to be filled out
+        PortAllocHandler(&TF_p->eax);
         break;
       case PORTWRITE_EVENT:
-        PortWriteHandler((char)TF_p->eax, TF_p->ebx); // passing char and port num
+        PortWriteHandler((char)TF_p->eax, TF_p->ebx);
         break;
       case PORTREAD_EVENT:
-        PortReadHandler((char *)TF_p->eax, TF_p->ebx); // passing char addr and port num
+        PortReadHandler((char *)TF_p->eax, TF_p->ebx);
         break;
       default:
-        cons_printf("Kernel Panic: unknown event_num %d!\n"); 
-        breakpoint();
+         cons_printf("Kernel Panic: unknown event_num %d!\n"); 
+         breakpoint();
    }
    Scheduler(); // call scheduler to select current_pid (if needed)
    Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
