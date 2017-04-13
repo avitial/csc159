@@ -175,9 +175,12 @@ void PortWriteOne(int port_num){
   if(port[port_num].loopback_q.size != 0){
     one = DeQ(&port[port_num].loopback_q);
   } else{
-    one = DeQ(&port[port_num].write_q);
-    SemPostHandler(port[port_num].write_sid);
+   // one = DeQ(&port[port_num].write_q);
+   //  SemPostHandler(port[port_num].write_sid);
   }
+
+  one = DeQ(&port[port_num].write_q);
+  SemPostHandler(port[port_num].write_sid);
   outportb(port[port_num].IO+DATA, one);
   port[port_num].write_ok = 0; // will use write event below
   return;

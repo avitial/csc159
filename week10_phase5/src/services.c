@@ -86,7 +86,7 @@ int PortAlloc(void){
 }
 
 void PortWrite(char *p, int port_num){
-  while(!p && *p != '\r'){
+  while(*p){
     SemWait(port_num);
     asm("pushl %%eax;
        pushl %%ebx;

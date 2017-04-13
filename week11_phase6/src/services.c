@@ -116,7 +116,7 @@ void PortRead(char *p, int port_num){
       :
       : "g" ((int)p), "g" (port_num)
     );
-    *p++;
+    p++;
     size++;
   } // end of forever loop
   *p = '\0'; // null-terminate str, overwrite \r

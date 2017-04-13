@@ -40,18 +40,17 @@ void Scheduler(){ // choose a PID as current_pid to load/run
 
 // OS bootstrap from main() which is process 0, so we do not use this PID
 int main() {
-   int i;
+  int i;
   
-   MyBzero((char *)&free_q, Q_SIZE);
-   MyBzero((char *)&ready_q, Q_SIZE);
-   MyBzero((char *)&sleep_q, Q_SIZE);
-   MyBzero((char *)&sem[0].wait_q, Q_SIZE);
-   MyBzero((char *)&sem[0], (sizeof(sem_t))*Q_SIZE);
-   
+  MyBzero((char *)&free_q, Q_SIZE);
+  MyBzero((char *)&ready_q, Q_SIZE);
+  MyBzero((char *)&sleep_q, Q_SIZE);
+  MyBzero((char *)&sem[0].wait_q, Q_SIZE);
+
   for(i=0; i<Q_SIZE; i++){
-    MyBzero((char *)&sem[i].wait_q, Q_SIZE);
-    MyBzero((char *)&sem[i], (sizeof(sem))*Q_SIZE);
-    sem[i].owner = 0; 
+    MyBzero((char *)&sem[0].wait_q, Q_SIZE);
+    MyBzero((char *)&sem[i], (sizeof(sem_t))*Q_SIZE);
+    sem[i].owner = 0;
     sem[i].passes = 0;
   }
   port[0].owner = 0; // clear owner info
@@ -62,10 +61,9 @@ int main() {
   vehicle_sid = -1; // vehicle proc running
 
   // queue free_q with pid 1~19
-  for(i=1; i<Q_SIZE; i++){
-    EnQ(i, &free_q);
-  }
-
+   for(i=1; i<Q_SIZE; i++){
+     EnQ(i, &free_q);
+   }
    IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
    cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
    IDTEntrySet(0x20, TimerEvent);
@@ -81,9 +79,7 @@ int main() {
    IDTEntrySet(0X6C, PortReadEvent);
    
    outportb(0x21, ~0x25); // set PIC mask to open up for IRQ0, IRQ1, IRQ3 and IRQ4 
-   NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
    NewProcHandler(TermProc); // two calls of TermProc
-   NewProcHandler(TermProc);   
    Scheduler(); // call scheduler to select current_pid (if needed)
    Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
    return 0; // compiler needs for syntax altho this statement is never exec
