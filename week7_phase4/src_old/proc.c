@@ -7,17 +7,33 @@
 #include "spede.h"      // cons_xxx below needs
 #include "data.h"       // current_pid needed below
 #include "proc.h"       // prototypes of processes
+#include "handlers.h"
 
 // Init PID 1, always ready to run, never preempted
 void Init(void) {
+  char key;
+  char str[] = " Hello, World! Team GidOS: Eloisa Esparza and Luis Avitia\n\r";
   int i;
 
-  while(1){
-	  //cons_printf("%d..", 1); //show on Target PC: "1.." (since Init has PID 1 as we know)      
-	  for(i=0; i<FAST_LOOP; i++){ //loop for LOOP times { // to cause approx 1 second of delay
-      asm("inb $0x80"); // call asm("inb $0x80") which delay .6 microsecond
-    }
-  }
+   while(1){
+      if(cons_kbhit()){ // if a key is pressed on Target PC
+         key = cons_getchar(); // get the key
+         switch(key){ // switch by the key obtained {
+         case 'b':
+            breakpoint(); // go into gdb
+            break;
+         case 'p':
+            SysPrintHandler(str); // call SysPrint Handler
+            break;
+         case 'q':
+            exit(0); // quit program
+         }
+      }
+  //cons_printf("%d..", 1); //show on Target PC: "1.." (since Init has PID 1 as we know)      
+      for(i=0; i<LOOP; i++){ //loop for LOOP times { // to cause approx 1 second of delay
+         asm("inb $0x80"); // call asm("inb $0x80") which delay .6 microsecond
+      }
+   }
 }
 
 // PID 2, 3, 4, etc. mimicking a usual user process

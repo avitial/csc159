@@ -15,12 +15,13 @@
 #define GETPID_EVENT 0x64   // IDT entry #100, for get pid event
 #define SLEEP_EVENT 0x65    // IDT entry #101, for sleep event
 // events for semaphores (phase3)
-#define SEMALLOC_EVENT 0x66 // IDT entry #102, for sem alloc event
+#define SEMALLOC_EVENT 0x66 // IDT entry #012, for sem alloc event
 #define SEMWAIT_EVENT 0x67  // IDT entry #103, for sem wait event
 #define SEMPOST_EVENT 0x68  // IDT entry #104, for sem post event
+#define SYSPRINT_EVENT 0x07 // IDT entry #07, for sys print event
 
-#ifndef ASSEMBLER           // skip below if ASSEMBLER defined (from an assembly code)
-                            // since below is not in assembler syntax
+#ifndef ASSEMBLER  // skip below if ASSEMBLER defined (from an assembly code)
+                   // since below is not in assembler syntax
 __BEGIN_DECLS
 
 #include "types.h"          // for 'TF_t' below
@@ -32,9 +33,11 @@ extern void SleepEvent();		 // coded in events.S, code for Kernel Services
 extern void SemAllocEvent(); // coded in events.S, code for Semaphores 
 extern void SemWaitEvent();  // coded in events.S, code for Semaphores
 extern void SemPostEvent();  // coded in events.S, code for Semaphores
+extern void SysPrintEvent(); // coded in events.S, code for SysPrint
 
 __END_DECLS
 
 #endif // ifndef ASSEMBLER
 
 #endif // ifndef __EVENTS_H__
+

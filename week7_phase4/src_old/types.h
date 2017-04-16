@@ -36,29 +36,29 @@ typedef struct {
 	unsigned int	eip; // processor state frame below
 	unsigned int	cs; 
 	unsigned int	eflags; 
-} TF_t;           // trapframe type
+} TF_t;  // trapframe type
  
 typedef void (*func_ptr_t)(); // void-return function pointer type
 
 // this is the same as constant defines: FREE=0, RUN=1, etc.
 typedef enum {FREE, RUN, READY, SLEEP, WAIT, ZOMBIE} state_t;
 
-typedef struct {  // PCB describes proc image
-   state_t state; // state of process
+typedef struct {             // PCB describes proc image
+   state_t state;            // state of process
    int cpu_time;	// CPU runtime
-   int wake_time;	// used to note when a process is supposed to be waken up from SLEEP state
-   TF_t *TF_p;    // points to trapframe of process
+   int wake_time;			 // used to note when a process is supposed to be waken up from SLEEP state
+   TF_t *TF_p;               // points to trapframe of process
 } pcb_t;
 
-typedef struct {  // generic queue type
-   int q[Q_SIZE]; // integers are queued in q[] array
-   int size;      // size is also where the tail is for new data
+typedef struct {             // generic queue type
+   int q[Q_SIZE];            // integers are queued in q[] array
+   int size;     // size is also where the tail is for new data
 } q_t;
 
 typedef struct {
-  int owner;      // owner pid
-  int passes;     // max no. of procs allowed to pass this sem
-  q_t wait_q;     // blocked pids
+  int owner; // owner pid
+  int passes; // max no. of procs allowed to pass this sem
+  q_t wait_q; // blocked pids
 } sem_t;
 
 #endif // __TYPES_H__

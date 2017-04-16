@@ -9,8 +9,9 @@ void NewProcHandler(func_ptr_t);
 void TimerHandler(void);
 void SleepHandler(int);
 void GetPidHandler(void);
+
 void SemAllocHandler(int);
 void SemWaitHandler(int);
 void SemPostHandler(int);
-
+void SysPrintHandler(char *);
 #endif

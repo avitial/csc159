@@ -8,26 +8,21 @@
 void MyBzero(char *p, int size) {
 	int i;
 	for(i=0; i<size; i++){
-    *p = 0;
-    p++;
+    //*p = 0 + '0';
+    *p++=0;
   }
 }
 
 // dequeue, return 1st integer in array, and move all forward
 // if queue empty, return 0
 int DeQ(q_t *p) { // return 0 if q[] is empty
-	int i, data = 0; 
+	int data = 0; 
 	
   if(p->size == 0){
 		return data;
 	} else{
     data = p->q[0];
     p->size--;
-    
-    for(i=0; i<Q_SIZE-1; i++){
-      p->q[i] = p->q[i+1];  
-    }
-    /*
       p->q[0] = p->q[1];
       p->q[1] = p->q[2];
       p->q[2] = p->q[3];
@@ -47,8 +42,7 @@ int DeQ(q_t *p) { // return 0 if q[] is empty
       p->q[16] = p->q[17];
       p->q[17] = p->q[18];
       p->q[18] = p->q[19];
-    */
-}
+  }
 	return data;
 }
 

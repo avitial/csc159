@@ -15,11 +15,14 @@ void NewProcHandler(func_ptr_t p){  // arg: where process code starts
   	cons_printf("Kernel Panic: no more PID left!\n");
     breakpoint(); // breakpoint() into GDB
 	}
+
   pid = DeQ(&free_q); // get 'pid' from free_q
   MyBzero((char *)&pcb[pid], sizeof(pcb_t));
-  MyBzero((char *)&proc_stack[pid], PROC_STACK_SIZE); // use tool to clear the PCB (indexed by 'pid')
+  MyBzero((char *)proc_stack[pid], PROC_STACK_SIZE); // use tool to clear the PCB (indexed by 'pid')
+  pcb[pid].state = READY;
+  EnQ(pid, &ready_q);
 
-  pcb[pid].TF_p = (TF_t *)&proc_stack[pid][PROC_STACK_SIZE - sizeof(TF_t)]; // point TF_p to highest area in stack
+  pcb[pid].TF_p = (TF_t *)&proc_stack[pid][4032]; // point TF_p to highest area in stack
   
   // then fill out the eip of the TF
 	pcb[pid].TF_p->eip = (int) p; // new process code
@@ -30,42 +33,45 @@ void NewProcHandler(func_ptr_t p){  // arg: where process code starts
 	pcb[pid].TF_p->fs = get_fs(); // duplicate from current CPU
 	pcb[pid].TF_p->gs = get_gs(); // duplicate from current CPU
 
-  pcb[pid].cpu_time = 0;        //pcb[pid].total_cpu_time = 0;
-  pcb[pid].state = READY;
-  EnQ(pid, &ready_q);
-
-  if(pid>9){
-    ch_p[pid*80+40]=0xf00+ (pid/10+'0');
-    ch_p[pid*80+41]=0xf00+(pid%10+'0');
-  } else{
-    ch_p[pid*80+40]=0xf00+pid+'0';
+  pcb[pid].cpu_time = 0; //pcb[pid].total_cpu_time = 0;
+  if(pid != 0){ // phase 3
+    pcb[pid].state = READY;
+    EnQ(pid, &ready_q); // pid1 not queued
+    
+    if(pid>9){
+      ch_p[pid*80+40]=0xf00+ (pid/10+'0');
+      ch_p[pid*80+41]=0xf00+(pid%10+'0');
+    } else{
+      ch_p[pid*80+40]=0xf00+pid+'0';
+    }
+    ch_p[pid*80+43] = 0xf00 +'r';
   }
-  ch_p[pid*80+43] = 0xf00 +'r';
 }
-
 void GetPidHandler(void){
   pcb[current_pid].TF_p->eax = current_pid;
 }
 
 // count cpu_time of running process and preempt it if reaching limit
 void TimerHandler(void){
-  int i;
-  current_time++;              // phase 1
+  int i, pid;
+  // phase 1
+  current_time++;
   pcb[current_pid].cpu_time++; // upcount cpu_time of the process (PID is current_pid)
   
   if(pcb[current_pid].cpu_time == TIME_LIMIT){ // if its cpu_time reaches the preset OS time limit
     pcb[current_pid].state = READY; // update/downgrade its state
-    EnQ(current_pid, &ready_q);     // move it to ready_q
+    EnQ(current_pid, &ready_q); // move it to ready_q
     ch_p[current_pid*80+43] = 0xf00 +'r';
     current_pid = 0; // no longer runs
   } 
   
-  for(i=0; i<Q_SIZE; i++){    // phase 2  
+  // phase 2
+  for(i=0; i<Q_SIZE; i++){  
     if((pcb[i].state == SLEEP) && (pcb[i].wake_time == current_time)){ 
-      DeQ(&sleep_q);
-      EnQ(i, &ready_q);     // append pid to ready_q
-      pcb[i].state = READY; // update proc state
-      ch_p[i*80+43] = 0xf00 +'r';
+      pid = DeQ(&sleep_q); 
+      EnQ(pid, &ready_q); // append pid to readu_q
+      pcb[pid].state = READY; // update proc state
+      ch_p[pid*80+43] = 0xf00 +'r';
     }
   }
   outportb(0x20, 0x60); /// Don't forget: notify PIC event-handling done
@@ -123,3 +129,39 @@ void SemPostHandler(int sid){
   //  cons_printf("SEMPOST: passes = %d\t", sem[sid].passes);
   }
 }
+
+void SysPrintHandler(char *str){
+   int i, code; 
+
+   const int printer_port = 0x378;                // I/O mapped # 0x378
+   const int printer_data = printer_port + 0;     // data register
+   const int printer_status = printer_port + 1;   // status register
+   const int printer_control = printer_port + 2;  // control register
+
+// initialize printer port (check printer power, cable, and paper)
+   outportb(printer_control, 16);             // 1<<4 is PC_SLCTIN
+   code = inportb(printer_status);            // read printer status
+   
+   for(i=0; i<50; i++) asm("inb $0x80");      // needs some delay
+   outportb(printer_control, 4 | 8 );         // 1<<2 is PC_INIT, 1<<3 PC_SLCTIN
+
+   while(*str) {
+      outportb(printer_data, *str);             // write char to printer data
+      code = inportb(printer_control);        // read printer control
+      outportb(printer_control, code | 1);    // 1<<0 is PC_STROBE
+      for(i=0; i<50; i++) asm("inb $0x80");   // needs some delay
+      outportb(printer_control, code);        // send original (cancel strobe)
+
+      for(i = 0; i < LOOP*3; i++) {           // 3 seconds at most
+         code = inportb(printer_status) & 64; // 1<<6 is PS_ACK
+         if(code == 0) break;                 // printer ACK'ed
+         asm("inb $0x80");                    // otherwise, wait 0.6 us, and loop
+      }
+      if(i == LOOP*3) {                        // if 3 sec did pass (didn't ACK)
+         cons_printf(">>> Printer timed out!\n");
+         break;   // abort printing
+      }
+      str++;        // move to print next character
+   }              // while(*str)
+}
+

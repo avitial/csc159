@@ -8,4 +8,5 @@ void Sleep(int);
 int SemAlloc(int);
 int SemWait(int);
 int SemPost(int);
+void SysPrint(char); 
 #endif
