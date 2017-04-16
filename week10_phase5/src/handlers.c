@@ -10,10 +10,10 @@
 // to create process, alloc PID, PCB, and stack space
 // build TF into stack, set PCB, register PID to ready_q
 void NewProcHandler(func_ptr_t p){  // arg: where process code starts
-	int pid; 
+  int pid; 
 
   if((free_q.size == 0)){       // this may occur for testing 
-  	cons_printf("Kernel Panic: no more PID left!\n");
+    cons_printf("Kernel Panic: no more PID left!\n");
     breakpoint();               // breakpoint() into GDB
 	}
 
@@ -21,15 +21,14 @@ void NewProcHandler(func_ptr_t p){  // arg: where process code starts
   MyBzero((char *)&pcb[pid], sizeof(pcb_t));
   MyBzero((char *)&proc_stack[pid], PROC_STACK_SIZE); // use tool to clear the PCB (indexed by 'pid')
   pcb[pid].TF_p = (TF_t *)&proc_stack[pid][PROC_STACK_SIZE - sizeof(TF_t)]; // point TF_p to highest area in stack
-  
   // then fill out the eip of the TF
-	pcb[pid].TF_p->eip = (int) p; // new process code
-	pcb[pid].TF_p->eflags = EF_DEFAULT_VALUE|EF_INTR; // EFL will enable intr!
+  pcb[pid].TF_p->eip = (int) p; // new process code
+  pcb[pid].TF_p->eflags = EF_DEFAULT_VALUE|EF_INTR; // EFL will enable intr!
   pcb[pid].TF_p->cs = get_cs(); // duplicate from current CPU
-	pcb[pid].TF_p->ds = get_ds(); // duplicate from current CPU
-	pcb[pid].TF_p->es = get_es(); // duplicate from current CPU
-	pcb[pid].TF_p->fs = get_fs(); // duplicate from current CPU
-	pcb[pid].TF_p->gs = get_gs(); // duplicate from current CPU
+  pcb[pid].TF_p->ds = get_ds(); // duplicate from current CPU
+  pcb[pid].TF_p->es = get_es(); // duplicate from current CPU
+  pcb[pid].TF_p->fs = get_fs(); // duplicate from current CPU
+  pcb[pid].TF_p->gs = get_gs(); // duplicate from current CPU
 
   pcb[pid].cpu_time = 0;        //pcb[pid].total_cpu_time = 0;
   pcb[pid].state = READY;
