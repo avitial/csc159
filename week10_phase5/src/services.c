@@ -1,7 +1,6 @@
 // services.c, 159
-#include "data.h"
 
-int GetPid(void){ // function receives no arguments, but return an integer
+int GetPid(void){             // function receives no arguments, but return an integer
 	int pid;
 
 	asm("pushl %%eax;
@@ -15,14 +14,16 @@ int GetPid(void){ // function receives no arguments, but return an integer
 }
 
 void Sleep(int sleep_amount){ // function receives arguments, return an integer
+
 	asm("pushl %%eax;
 		int $0x65;
-		movl %0, %%eax;
+		movl %%eax, %0;
 		popl %%eax"
 		:
-		: "g" (sleep_amount)	//when having an input, e.g., # of seconds to sleep, the input line will b : "g" (seconds)
+		: "g" (sleep_amount)      //when having an input, the input line will b : "g" (seconds)
 	);
 }
+
 int SemAlloc(int passes){
   int sid;
   asm("pushl %%eax;
@@ -41,18 +42,17 @@ int SemAlloc(int passes){
 void SemWait(int sid){
     asm("pushl %%eax;
       int $0x67;
-      movl %%eax, %0;
+      movl %0, %%eax;
       popl %%eax"
       :
       : "g" (sid)
    );
-
 }
 
 void SemPost(int sid){
   asm("pushl %%eax;
     int $0x68;
-    movl %%eax, %0;
+    movl %0, %%eax;
     popl %%eax"
     :
     : "g" (sid)
@@ -60,68 +60,11 @@ void SemPost(int sid){
 }
 
 void SysPrint(int *str){
-    asm("pushl %%eax;
+  asm("pushl %%eax;
     movl %0, %%eax;
     int $0x69; 
     popl %%eax"
-    :
+    :   
     : "g" (str)
-    );
-}
-
-int PortAlloc(void){
-  int port_num;
-  asm("pushl %%eax;
-  int $0x6A;
-  movl %%eax, %0;
-  popl %%eax"
-  : "=g" (port_num)
-  :
-  );
-  Sleep(1);
-  port[port_num].write_sid = SemAlloc(Q_SIZE+12);
-  port[port_num].read_sid = SemAlloc(Q_SIZE+12);
-  cons_printf("write_sid is %d\n", port[port_num].write_sid);
-  port[port_num].read_q.size = 0;
-  return port_num;
-}
-
-void PortWrite(char *p, int port_num){
-  while(*p){
-    SemWait(port[port_num].write_sid);
-    //SemWait(port_num);
-    asm("pushl %%eax;
-       pushl %%ebx;
-       movl %0, %%eax; 
-       movl %%ebx, %0; 
-       int $0x6B;
-       popl %%ebx;
-       popl %%eax;"
-       :
-       : "g" ((int)*p), "g" (port_num)
-    );
-    p++;
-    // :g ((int)*p), "g" (port_num)
-  }
-  return;
-}
-
-void PortRead(char *p, int port_num){
-  int size = 0;
-  while(*p != '\r' || size != BUFF_SIZE -1){
-    asm("pushl %%eax;
-      pushl %%ebx;
-      movl %1, %%eax; 
-      movl %%ebx, %0; 
-      int $0x6C;
-      popl %%ebx;
-      popl %%eax;"
-      :
-      : "g" ((int)p), "g" (port_num)
-    );
-    p++;
-    size++;
-  } // end of forever loop
-  *p = '\0'; // null-terminate str, overwrite \r
-  return;
+  );  
 }
