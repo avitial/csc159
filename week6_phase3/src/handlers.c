@@ -15,14 +15,11 @@ void NewProcHandler(func_ptr_t p){  // arg: where process code starts
   	cons_printf("Kernel Panic: no more PID left!\n");
     breakpoint(); // breakpoint() into GDB
 	}
-
   pid = DeQ(&free_q); // get 'pid' from free_q
   MyBzero((char *)&pcb[pid], sizeof(pcb_t));
-  MyBzero((char *)proc_stack[pid], PROC_STACK_SIZE); // use tool to clear the PCB (indexed by 'pid')
-  pcb[pid].state = READY;
-  EnQ(pid, &ready_q);
+  MyBzero((char *)&proc_stack[pid], PROC_STACK_SIZE); // use tool to clear the PCB (indexed by 'pid')
 
-  pcb[pid].TF_p = (TF_t *)&proc_stack[pid][4032]; // point TF_p to highest area in stack
+  pcb[pid].TF_p = (TF_t *)&proc_stack[pid][PROC_STACK_SIZE - sizeof(TF_t)]; // point TF_p to highest area in stack
   
   // then fill out the eip of the TF
 	pcb[pid].TF_p->eip = (int) p; // new process code
@@ -33,45 +30,42 @@ void NewProcHandler(func_ptr_t p){  // arg: where process code starts
 	pcb[pid].TF_p->fs = get_fs(); // duplicate from current CPU
 	pcb[pid].TF_p->gs = get_gs(); // duplicate from current CPU
 
-  pcb[pid].cpu_time = 0; //pcb[pid].total_cpu_time = 0;
-  if(pid != 0){ // phase 3
-    pcb[pid].state = READY;
-    EnQ(pid, &ready_q); // pid1 not queued
-    
-    if(pid>9){
-      ch_p[pid*80+40]=0xf00+ (pid/10+'0');
-      ch_p[pid*80+41]=0xf00+(pid%10+'0');
-    } else{
-      ch_p[pid*80+40]=0xf00+pid+'0';
-    }
-    ch_p[pid*80+43] = 0xf00 +'r';
+  pcb[pid].cpu_time = 0;        //pcb[pid].total_cpu_time = 0;
+  pcb[pid].state = READY;
+  EnQ(pid, &ready_q);
+
+  if(pid>9){
+    ch_p[pid*80+40]=0xf00+ (pid/10+'0');
+    ch_p[pid*80+41]=0xf00+(pid%10+'0');
+  } else{
+    ch_p[pid*80+40]=0xf00+pid+'0';
   }
+  ch_p[pid*80+43] = 0xf00 +'r';
 }
+
 void GetPidHandler(void){
   pcb[current_pid].TF_p->eax = current_pid;
 }
 
 // count cpu_time of running process and preempt it if reaching limit
 void TimerHandler(void){
-  int i, pid;
-  // phase 1
-  current_time++;
+  int i;
+  current_time++;              // phase 1
   pcb[current_pid].cpu_time++; // upcount cpu_time of the process (PID is current_pid)
   
   if(pcb[current_pid].cpu_time == TIME_LIMIT){ // if its cpu_time reaches the preset OS time limit
     pcb[current_pid].state = READY; // update/downgrade its state
-    EnQ(current_pid, &ready_q); // move it to ready_q
+    EnQ(current_pid, &ready_q);     // move it to ready_q
     ch_p[current_pid*80+43] = 0xf00 +'r';
     current_pid = 0; // no longer runs
   } 
   
-  // phase 2
-  for(i=0; i<Q_SIZE; i++){  
+  for(i=0; i<Q_SIZE; i++){    // phase 2  
     if((pcb[i].state == SLEEP) && (pcb[i].wake_time == current_time)){ 
-      pid = DeQ(&sleep_q); 
-      EnQ(pid, &ready_q); // append pid to readu_q
-      pcb[pid].state = READY; // update proc state
-      ch_p[pid*80+43] = 0xf00 +'r';
+      DeQ(&sleep_q);
+      EnQ(i, &ready_q);     // append pid to ready_q
+      pcb[i].state = READY; // update proc state
+      ch_p[i*80+43] = 0xf00 +'r';
     }
   }
   outportb(0x20, 0x60); /// Don't forget: notify PIC event-handling done
@@ -128,5 +122,4 @@ void SemPostHandler(int sid){
     ch_p[48] = 0xf00 + sem[sid].passes + '0';
   //  cons_printf("SEMPOST: passes = %d\t", sem[sid].passes);
   }
-
 }

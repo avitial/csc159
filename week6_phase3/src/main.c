@@ -24,14 +24,15 @@ void IDTEntrySet(int event_num, func_ptr_t event_addr){
 } // end IDTEntrySet()
 
 void Scheduler(){ // choose a PID as current_pid to load/run
-	if(current_pid != 0) return; // if continue below, find one for current_pid
+  
+  if(current_pid != 0) return; // if continue below, find one for current_pid
 
 	if (ready_q.size == 0){ // if ready_q.size is 0 {
 		cons_printf("Kernel Panic: no process to run!\n"); // big problem!
     breakpoint(); // alternative
 	}
-	current_pid = DeQ(&ready_q); // get next ready-to-run process as current_pid
-	pcb[current_pid].state = RUN; // update proc state
+  current_pid = DeQ(&ready_q); // get next ready-to-run process as current_pid
+  pcb[current_pid].state = RUN; // update proc state
   pcb[current_pid].cpu_time = 0; // reset proc cpu_time count 
   ch_p[current_pid*80+43] = 0xf00 + 'R'; // phase 3 
 
@@ -41,16 +42,10 @@ void Scheduler(){ // choose a PID as current_pid to load/run
 int main() {
 	int i;
   
-  MyBzero((char *)&free_q, Q_SIZE);
-  MyBzero((char *)&ready_q, Q_SIZE);
-  MyBzero((char *)&sleep_q, Q_SIZE);
-  MyBzero((char *)&sem[0].wait_q, Q_SIZE);
-  MyBzero((char *)&sem[0], (sizeof(sem_t))*Q_SIZE);
-  for(i=0; i<Q_SIZE; i++){
-    MyBzero((char *)&sem[i], Q_SIZE);
-    sem[i].owner = 0; 
-    sem[i].passes = 0;
-  }
+  MyBzero((char *)&ready_q, sizeof(q_t));
+  MyBzero((char *)&free_q, sizeof(q_t));
+  MyBzero((char *)&sleep_q, sizeof(q_t));
+  MyBzero((char *)&sem, (sizeof(sem_t))*Q_SIZE);
 
 	current_time = 0; // init current time 
   vehicle_sid = -1; // vehicle proc running
@@ -63,8 +58,8 @@ int main() {
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
 	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
 	IDTEntrySet(0x20, TimerEvent);
-	IDTEntrySet(0x65, SleepEvent);
 	IDTEntrySet(0x64, GetPidEvent);
+  IDTEntrySet(0x65, SleepEvent);
 	IDTEntrySet(0x66, SemAllocEvent);
   IDTEntrySet(0x67, SemWaitEvent);
   IDTEntrySet(0x68, SemPostEvent);
@@ -74,7 +69,6 @@ int main() {
 	NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
   Scheduler(); // call scheduler to select current_pid (if needed)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
-	
   return 0; // compiler needs for syntax altho this statement is never exec
 } // end main()
 
