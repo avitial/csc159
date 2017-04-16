@@ -1,5 +1,4 @@
-//
-//// data.h, 159
+// data.h, 159
 // kernel data are all declared in main.c during bootstrap, but
 // other kernel .c code must reference them as 'extern' (already declared)
 
