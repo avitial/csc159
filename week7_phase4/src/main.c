@@ -47,8 +47,8 @@ int main() {
   MyBzero((char *)&sleep_q, sizeof(q_t));
   MyBzero((char *)&sem, (sizeof(sem_t))*Q_SIZE);
 
-	current_time = 0; // init current time 
-  vehicle_sid = -1; // vehicle proc running
+	current_time = 0;       // init current time 
+  vehicle_sid = -1;       // vehicle proc running
 
   // queue free_q with pid 1~19
   for(i=1; i<Q_SIZE; i++){
@@ -63,30 +63,31 @@ int main() {
 	IDTEntrySet(0x66, SemAllocEvent);
   IDTEntrySet(0x67, SemWaitEvent);
   IDTEntrySet(0x68, SemPostEvent);
+  IDTEntrySet(0x69, SysPrintEvent);
   
-  outportb(0x21, ~0x01); // set PIC mask to open up for timer IRQ0 only
+  outportb(0x21, ~0x01);  // set PIC mask to open up for timer IRQ0 only
   
-	NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
-  Scheduler(); // call scheduler to select current_pid (if needed)
+	NewProcHandler(Init);   // call NewProcHandler(Init) to create Init proc
+  Scheduler();            // call scheduler to select current_pid (if needed)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
-  return 0; // compiler needs for syntax altho this statement is never exec
+  return 0;               // compiler needs for syntax altho this statement is never exec
 } // end main()
 
 void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
-	char key;
+	//char key;
   
   pcb[current_pid].TF_p = TF_p; // save TF_P into the PCB of current_pid
   
   // switch according to the event_num in the TF TF_p points to {
 	switch (TF_p->event_num){
-	  case TIMER_EVENT: // if it's timer event
-      TimerHandler(); // call timer event handler
+	  case TIMER_EVENT:     // if it's timer event
+      TimerHandler();     // call timer event handler
 	    break;
     case SLEEP_EVENT:
       SleepHandler(TF_p->eax);
       break;
     case GETPID_EVENT:
-      GetPidHandler(); // clal getpid event handler 
+      GetPidHandler();    // call getpid event handler 
       break;
     case SEMALLOC_EVENT:
       SemAllocHandler(TF_p->eax);
@@ -97,12 +98,16 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
     case SEMPOST_EVENT:
       SemPostHandler(TF_p->eax);
       break;
+    case SYSPRINT_EVENT:
+      SysPrintHandler((char *)TF_p->eax);
+      break;
     default:
       cons_printf("Kernel Panic: unknown event_num %d!\n"); 
       breakpoint();
   }
 
-	if(cons_kbhit()){ // if a key is pressed on Target PC
+  // moving the keyboard input to Init (in proc.c/h)
+	/*if(cons_kbhit()){ // if a key is pressed on Target PC
 		key = cons_getchar(); // get the key
 
 		switch(key){ // switch by the key obtained {
@@ -119,6 +124,7 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
 			  exit(0); // quit program
 		}
 	}
-	Scheduler(); // call scheduler to select current_pid (if needed)
+  */
+	Scheduler();          // call scheduler to select current_pid (if needed)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
 } // end Kernel()

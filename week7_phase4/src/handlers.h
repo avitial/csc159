@@ -12,5 +12,6 @@ void GetPidHandler(void);
 void SemAllocHandler(int);
 void SemWaitHandler(int);
 void SemPostHandler(int);
+void SysPrintHandler(char *);
 
 #endif

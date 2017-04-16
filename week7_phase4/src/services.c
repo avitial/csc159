@@ -23,6 +23,7 @@ void Sleep(int sleep_amount){ // function receives arguments, return an integer
 		: "g" (sleep_amount)      //when having an input, the input line will b : "g" (seconds)
 	);
 }
+
 int SemAlloc(int passes){
   int sid;
   asm("pushl %%eax;
@@ -56,4 +57,14 @@ void SemPost(int sid){
     :
     : "g" (sid)
   );
+}
+
+void SysPrint(int *str){
+  asm("pushl %%eax;
+    movl %0, %%eax;
+    int $0x69; 
+    popl %%eax"
+    :   
+    : "g" (str)
+  );  
 }
