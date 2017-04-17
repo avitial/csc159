@@ -42,10 +42,14 @@ void NewProcHandler(func_ptr_t p){  // arg: where process code starts
     ch_p[pid*80+40]=0xf00+pid+'0';
   }
   ch_p[pid*80+43] = 0xf00 +'r';
+  
+  return;
 }
 
 void GetPidHandler(void){
   pcb[current_pid].TF_p->eax = current_pid;
+  
+  return;
 }
 
 // count cpu_time of running process and preempt it if reaching limit
@@ -70,6 +74,8 @@ void TimerHandler(void){
     }
   }
   outportb(0x20, 0x60);           // Don't forget: notify PIC event-handling done
+  
+  return;
 }
 
 void SleepHandler(int sleep_amount){
@@ -78,6 +84,8 @@ void SleepHandler(int sleep_amount){
   pcb[current_pid].state = SLEEP; // update proc state
   ch_p[current_pid*80+43] = 0xf00 +'S';
   current_pid = 0;                // reset current_pid
+
+  return;
 }
 
 void SemAllocHandler(int passes){
@@ -97,6 +105,7 @@ void SemAllocHandler(int passes){
   sem[sid].wait_q.size = 0; 
   pcb[current_pid].TF_p -> ebx = sid; 
   
+  return;
 }
 
 void SemWaitHandler(int sid){
@@ -111,6 +120,7 @@ void SemWaitHandler(int sid){
     ch_p[current_pid * 80 + 43] = 0xf00 + 'W';
     current_pid = 0;
   }
+  return;
 }
 
 void SemPostHandler(int sid){
@@ -125,6 +135,7 @@ void SemPostHandler(int sid){
     sem[sid].passes++;
     ch_p[48] = 0xf00 + sem[sid].passes + '0';
   }
+  return;
 }
 void SysPrintHandler(char *str){
   int i, code;
@@ -162,25 +173,120 @@ void SysPrintHandler(char *str){
 }
 
 void PortWriteOne(int port_num){
+  char one;
+
+  if(port[port_num].write_q.size == 0 && port[port_num].loopback_q.size == 0){
+    port[port_num].write_ok = 1; // record missing write event
+    return;
+  }
+
+  if(port[port_num].loopback_q.size != 0){
+    one = DeQ(&port[port_num].loopback_q);
+  } else { 
+    one = DeQ(&port[port_num].write_q);
+    SemPostHandler(port[port_num].write_sid);
+  }
+  outportb(port[port_num].IO+DATA, one);
+  port[port_num].write_ok = 0; // will use write event below
+
   return;
 }
 
 void PortReadOne(int port_num){
+  char one;
+  
+  one = inportb(port[port_num].IO+DATA);
+  
+  if(port[port_num].read_q.size == Q_SIZE){
+    cons_printf("Kernel Panic: you are typing on terminal is super fast!\n");
+    return;
+  }
+  EnQ(one, &port[port_num].read_q);
+  EnQ(one, &port[port_num].loopback_q);
+
+  if(one == '\r'){
+    EnQ('\n', &port[port_num].loopback_q);
+  }
+  SemPostHandler(port[port_num].read_sid);  
+  
   return;
 }
 
 void PortHandler(){
+  int port_num, intr_type; 
+
+  for(port_num=0; port_num<PORT_NUM; port_num++){ // PORT_NUM equals 3 (COM Ports 2, 3 4)
+    while((intr_type = inportb(port[port_num].IO+IIR))){ // set
+      switch(intr_type){
+        case IIR_RXRDY:
+          PortReadOne(port_num);
+          break;
+        case IIR_TXRDY:
+          PortWriteOne(port_num);
+          break;
+      }
+      if(port[port_num].write_ok == 1){
+        PortWriteOne(port_num);
+      }
+    }
+  }
+  outportb(0x20, 0x60);
+  outportb(0x20, 0x63);
+  outportb(0x20, 0x64);
+
   return;
 }
 
 void PortAllocHandler(int *eax){
+  int port_num, baud_rate, divisor;
+  static int IO[PORT_NUM] = {0x2f8, 0x3e8, 0x2e8};
+
+  for(port_num=0; port_num<=PORT_NUM-1; port_num++){
+    if(port[port_num].owner == 0) break; // found one
+  }
+
+  if(port_num == PORT_NUM){
+    cons_printf("Kernel Panic: no port left!\n");
+    return;
+  }
+  *eax = port_num;
+  MyBzero((char *)&port[port_num].IO+DATA, sizeof(DATA));
+  port[port_num].owner = current_pid;
+  port[port_num].IO = IO[port_num];
+  port[port_num].write_ok = 1;
+
+  baud_rate = 9600;
+  divisor = 115200 / baud_rate;
+  
+  outportb(port[port_num].IO+CFCR, CFCR_DLAB);
+  outportb(port[port_num].IO+BAUDLO, LOBYTE(divisor));
+  outportb(port[port_num].IO+BAUDHI, HIBYTE(divisor));
+  outportb(port[port_num].IO+CFCR, CFCR_PEVEN|CFCR_PENAB|CFCR_7BITS);
+  outportb(port[port_num].IO+IER, 0);
+  outportb(port[port_num].IO+MCR, MCR_DTR|MCR_RTS|MCR_IENABLE);
+  asm("inb $0x80");
+  outportb(port[port_num].IO+IER, IER_ERXRDY|IER_ETXRDY);
+
   return;
 }
 
 void PortWriteHandler(char one, int port_num){
+  if(port[port_num].write_q.size == Q_SIZE){
+    cons_printf("Kernel Panic: terminal is not prompting (fast enough)?\n");
+    return;
+  }
+  EnQ(one, &port[port_num].write_q);//buffer one
+  if(port[port_num].write_ok == 1){
+    PortWriteOne(port_num);
+  }
   return;
 }
 
 void PortReadHandler(char *one, int port_num){
+  if(port[port_num].read_q.size == 0){
+    cons_printf("Kernel Panic: nothing in typing/read buffer?\n");
+    return;
+  }
+  *one = DeQ(&port[port_num].read_q);
   return;
 }

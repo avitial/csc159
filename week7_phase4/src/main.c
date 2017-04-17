@@ -47,7 +47,8 @@ int main() {
   MyBzero((char *)&free_q, sizeof(q_t));
   MyBzero((char *)&sleep_q, sizeof(q_t));
   MyBzero((char *)&sem, (sizeof(sem_t))*Q_SIZE);
-
+  MyBzero((char *)&port, (sizeof(port_t))*PORT_NUM);
+  
 	current_time = 0;       // init current time 
   vehicle_sid = -1;       // vehicle proc running
 
@@ -55,6 +56,12 @@ int main() {
   for(i=1; i<Q_SIZE; i++){
     EnQ(i, &free_q);
   }
+  
+  for(i=0; i<PORT_NUM; i++){
+    port[i].owner = 0;
+  }
+
+
 
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
 	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
@@ -70,9 +77,12 @@ int main() {
   IDTEntrySet(0x6B, PortWriteEvent);
   IDTEntrySet(0x6C, PortReadEvent);
 
-  outportb(0x21, ~0x01);  // set PIC mask to open up for timer IRQ0 only
+  outportb(0x21, ~0x01);      // set PIC mask to open up for timer IRQ0 only
+  outportb(0x21, ~(1+8+16));  // set PIC mask for IRQ1, IRQ3 and IRQ4
   
-	NewProcHandler(Init);   // call NewProcHandler(Init) to create Init proc
+	NewProcHandler(TermProc);   // call NewProcHandler(Init) to create Init proc
+  //NewProcHandler(TermProc);   // call NewProcHandler(Init) to create Init proc
+  NewProcHandler(Init);   // call NewProcHandler(Init) to create Init proc
   Scheduler();            // call scheduler to select current_pid (if needed)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
   return 0;               // compiler needs for syntax altho this statement is never exec
