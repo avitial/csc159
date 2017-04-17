@@ -63,3 +63,18 @@ ENTRY(SemPostEvent)
 ENTRY(SysPrintEvent)
   pushl $SYSPRINT_EVENT
   jmp CommonPart
+
+ENTRY(PortEvent)
+  pushl $PORT_EVENT
+  jmp CommonPart
+
+ENTRY(PortAllocEvent)
+  pushl $PORTALLOC_EVENT
+  jmp CommonPart
+
+ENTRY(PortWriteEvent)
+  pushl $PORTWRITE_EVENT
+  jmp CommonPart
+ENTRY(PortReadEvent)
+  pushl $PORTREAD_EVENT
+  jmp CommonPart

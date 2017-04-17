@@ -17,6 +17,7 @@ char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // process runtime stacks
 struct i386_gate *IDT_p;
 unsigned short *ch_p = (unsigned short*)0xB8000; // init ch_p pointer to vga
 sem_t sem[Q_SIZE];
+port_t port[PORT_NUM];
 
 void IDTEntrySet(int event_num, func_ptr_t event_addr){
 	struct i386_gate *IDT_tbl = &IDT_p[event_num];
@@ -64,7 +65,11 @@ int main() {
   IDTEntrySet(0x67, SemWaitEvent);
   IDTEntrySet(0x68, SemPostEvent);
   IDTEntrySet(0x69, SysPrintEvent);
-  
+  IDTEntrySet(0x23, PortEvent);
+  IDTEntrySet(0x6A, PortAllocEvent);
+  IDTEntrySet(0x6B, PortWriteEvent);
+  IDTEntrySet(0x6C, PortReadEvent);
+
   outportb(0x21, ~0x01);  // set PIC mask to open up for timer IRQ0 only
   
 	NewProcHandler(Init);   // call NewProcHandler(Init) to create Init proc
@@ -100,6 +105,18 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
       break;
     case SYSPRINT_EVENT:
       SysPrintHandler((char *)TF_p->eax);
+      break;
+    case PORT_EVENT:
+      PortHandler();
+      break;
+    case PORTALLOC_EVENT:
+      PortAllocHandler(&TF_p->eax);
+      break;
+    case PORTWRITE_EVENT:
+      PortWriteHandler((char)TF_p->eax, TF_p->ebx);
+      break;
+    case PORTREAD_EVENT:
+      PortReadHandler((char *)TF_p->eax, TF_p->ebx);
       break;
     default:
       cons_printf("Kernel Panic: unknown event_num %d!\n"); 

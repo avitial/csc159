@@ -15,5 +15,6 @@ extern pcb_t pcb[PROC_NUM];         // 20 Process Control Blocks
 extern char proc_stack[PROC_NUM][PROC_STACK_SIZE]; // 20 process runtime stacks
 extern sem_t sem[Q_SIZE];           // 20 semaphore structs
 extern unsigned short *ch_p;        // to check procs and a sem
+extern port_t port[PORT_NUM];
 
 #endif // ifndef __DATA_H__         ('name-mangling' prevention)

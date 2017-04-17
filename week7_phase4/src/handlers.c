@@ -160,3 +160,27 @@ void SysPrintHandler(char *str){
       str++;                                    // move to print next character
   } // while(*str)
 }
+
+void PortWriteOne(int port_num){
+  return;
+}
+
+void PortReadOne(int port_num){
+  return;
+}
+
+void PortHandler(){
+  return;
+}
+
+void PortAllocHandler(int *eax){
+  return;
+}
+
+void PortWriteHandler(char one, int port_num){
+  return;
+}
+
+void PortReadHandler(char *one, int port_num){
+  return;
+}
