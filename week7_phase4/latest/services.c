@@ -90,7 +90,7 @@ int PortAlloc(void){
 }
 
 void PortWrite(char *p, int port_num){
-  while(*p){
+  while(*p != '\0'){
     SemWait(port[port_num].write_sid);
     asm("pushl %%eax;
     pushl %%ebx;
@@ -112,6 +112,7 @@ void PortRead(char *p, int port_num){
   int size = 0;
   //while(*p != '\r' || size != BUFF_SIZE -1){
   while(1){
+    SemWait(port[port_num].read_sid);
     asm("pushl %%eax;
     pushl %%ebx;
     movl %0, %%eax; 
@@ -124,10 +125,10 @@ void PortRead(char *p, int port_num){
     );
     p++;
     size++;
-    if(*p == '\n'){
+    if(*p == '\n'){ // if char is newline
       break;
     }
-    if(size == BUFF_SIZE-1){
+    if(size == BUFF_SIZE-1){ // if size equals buffsize
       break;
     }
   } // end of forever loop

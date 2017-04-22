@@ -6,11 +6,7 @@
 
 // clear DRAM data blocks by filling zeroes
 void MyBzero(char *p, int size) {
-	int i;
-	for(i=0; i<size; i++){
-    *p = 0;
-    p++;
-  }
+  while(size--) *p++=0; 
 }
 
 // dequeue, return 1st integer in array, and move all forward

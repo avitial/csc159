@@ -62,21 +62,22 @@ int main() {
 
 	IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
 	cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
-	IDTEntrySet(0x20, TimerEvent);
-	IDTEntrySet(0x64, GetPidEvent);
-  IDTEntrySet(0x65, SleepEvent);
-	IDTEntrySet(0x66, SemAllocEvent);
-  IDTEntrySet(0x67, SemWaitEvent);
-  IDTEntrySet(0x68, SemPostEvent);
-  IDTEntrySet(0x69, SysPrintEvent);
-  IDTEntrySet(0x23, PortEvent);
-  IDTEntrySet(0x6A, PortAllocEvent);
-  IDTEntrySet(0x6B, PortWriteEvent);
-  IDTEntrySet(0x6C, PortReadEvent);
+	IDTEntrySet(TIMER_EVENT, TimerEvent);
+	IDTEntrySet(GETPID_EVENT, GetPidEvent);
+  IDTEntrySet(SLEEP_EVENT, SleepEvent);
+	IDTEntrySet(SEMALLOC_EVENT, SemAllocEvent);
+  IDTEntrySet(SEMWAIT_EVENT, SemWaitEvent);
+  IDTEntrySet(SEMPOST_EVENT, SemPostEvent);
+  IDTEntrySet(SYSPRINT_EVENT, SysPrintEvent);
+  IDTEntrySet(PORT_EVENT, PortEvent);
+  IDTEntrySet(PORT_EVENT+1, PortEvent);
+  IDTEntrySet(PORTALLOC_EVENT, PortAllocEvent);
+  IDTEntrySet(PORTWRITE_EVENT, PortWriteEvent);
+  IDTEntrySet(PORTREAD_EVENT, PortReadEvent);
 
   //outportb(0x21, ~0x01);      // set PIC mask to open up for timer IRQ0 only
-  outportb(0x21, ~25);  // set PIC mask for IRQ1, IRQ3 and IRQ4
-  
+  outportb(0x21, ~0x19);  // set PIC mask for IRQ1, IRQ3 and IRQ4
+
 	NewProcHandler(TermProc);   // call NewProcHandler(Init) to create Init proc
   NewProcHandler(TermProc);   // call NewProcHandler(Init) to create Init proc
   NewProcHandler(Init);   // call NewProcHandler(Init) to create Init proc

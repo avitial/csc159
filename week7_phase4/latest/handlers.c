@@ -16,14 +16,13 @@ void NewProcHandler(func_ptr_t p){  // arg: where process code starts
   	cons_printf("Kernel Panic: no more PID left!\n");
     breakpoint();               // breakpoint() into GDB
 	}
-
   pid = DeQ(&free_q);           // get 'pid' from free_q
   MyBzero((char *)&pcb[pid], sizeof(pcb_t));
   MyBzero((char *)&proc_stack[pid], PROC_STACK_SIZE); // use tool to clear the PCB (indexed by 'pid')
   pcb[pid].TF_p = (TF_t *)&proc_stack[pid][PROC_STACK_SIZE - sizeof(TF_t)]; // point TF_p to highest area in stack
   
   // then fill out the eip of the TF
-	pcb[pid].TF_p->eip = (int) p; // new process code
+	pcb[pid].TF_p->eip = (int)p; // new process code
 	pcb[pid].TF_p->eflags = EF_DEFAULT_VALUE|EF_INTR; // EFL will enable intr!
   pcb[pid].TF_p->cs = get_cs(); // duplicate from current CPU
 	pcb[pid].TF_p->ds = get_ds(); // duplicate from current CPU
@@ -57,6 +56,14 @@ void TimerHandler(void){
   int i;
   current_time++;                 
   pcb[current_pid].cpu_time++;    // upcount cpu_time of the process (PID is current_pid)
+
+  for(i=1; i<Q_SIZE; i++){        // phase 2  
+    if((pcb[i].state == SLEEP) && (pcb[i].wake_time == current_time)){ 
+      EnQ(i, &ready_q);           // append pid to ready_q
+      pcb[i].state = READY;       // update proc state
+      ch_p[i*80+43] = 0xf00 +'r';
+    }   
+  }
   
   if(pcb[current_pid].cpu_time == TIME_LIMIT){ // if its cpu_time reaches the preset OS time limit
     pcb[current_pid].state = READY; // update/downgrade its state
@@ -64,14 +71,6 @@ void TimerHandler(void){
     ch_p[current_pid*80+43] = 0xf00 +'r';
     current_pid = 0;              // no longer runs
   } 
-
-  for(i=1; i<=Q_SIZE; i++){        // phase 2  
-    if((pcb[i].state == SLEEP) && (pcb[i].wake_time == current_time)){ 
-      EnQ(i, &ready_q);           // append pid to ready_q
-      pcb[i].state = READY;       // update proc state
-      ch_p[i*80+43] = 0xf00 +'r';
-    }
-  }
   outportb(0x20, 0x60);           // Don't forget: notify PIC event-handling done
   
   return;
@@ -97,10 +96,10 @@ void SemAllocHandler(int passes){
     cons_printf("Kernel panic: no more semaphores left!\n");
     return; 
   }
-  sem[sid].owner = current_pid;
   sem[sid].passes = passes;
-  MyBzero((char *)&sem[sid].wait_q, Q_SIZE);
-  sem[sid].wait_q.size = 0; 
+  MyBzero((char *)&sem[sid].wait_q, sizeof(q_t));
+  sem[sid].wait_q.size = 0;
+  sem[sid].owner = current_pid;
   pcb[current_pid].TF_p -> ebx = sid; 
   
   return;
@@ -124,17 +123,18 @@ void SemWaitHandler(int sid){
 void SemPostHandler(int sid){
   int free_pid = 0;
 
-  if((sem[sid].wait_q.q[0] != 0)){
+  if((sem[sid].wait_q.size == 0)){
+    sem[sid].passes++;
+    ch_p[48] = 0xf00 + sem[sid].passes + '0';
+  } else{
     free_pid = DeQ(&sem[sid].wait_q);
     EnQ(free_pid, &ready_q);
     pcb[free_pid].state = READY;
     ch_p[free_pid*80+43] = 0xf00 +'r';
-  } else{
-    sem[sid].passes++;
-    ch_p[48] = 0xf00 + sem[sid].passes + '0';
   }
   return;
 }
+
 void SysPrintHandler(char *str){
   int i, code;
 
@@ -214,6 +214,17 @@ void PortHandler(){
   int port_num, intr_type; 
 
   for(port_num=0; port_num<PORT_NUM; port_num++){ // PORT_NUM equals 3 (COM Ports 2, 3 4)
+    intr_type = inportb(port[port_num].IO+IIR);
+    if(intr_type == IIR_RXRDY){
+      PortReadOne(port_num);
+      break;
+    }
+    if(intr_type == IIR_TXRDY && port[port_num].write_ok == 1){
+      PortWriteOne(port_num);
+      break;
+    }
+
+    /*
     while((intr_type = inportb(port[port_num].IO+IIR))){ // set
       switch(intr_type){
         case IIR_RXRDY:
@@ -226,7 +237,7 @@ void PortHandler(){
       if(port[port_num].write_ok == 1){
         PortWriteOne(port_num);
       }
-    }
+    }*/
   }
   outportb(0x20, 0x63);
   outportb(0x20, 0x64);
@@ -238,7 +249,7 @@ void PortAllocHandler(int *eax){
   int port_num, baud_rate, divisor;
   static int IO[PORT_NUM] = {0x2f8, 0x3e8, 0x2e8};
 
-  for(port_num=0; port_num<=PORT_NUM-1; port_num++){
+  for(port_num=0; port_num<PORT_NUM; port_num++){
     if(port[port_num].owner == 0) break; // found one
   }
 
@@ -247,7 +258,8 @@ void PortAllocHandler(int *eax){
     return;
   }
   *eax = port_num;
-  MyBzero((char *)&port[port_num].IO+DATA, sizeof(DATA));
+  //MyBzero((char *)&port[port_num].IO+DATA, sizeof(DATA));
+  MyBzero((char *)&port[port_num], sizeof(port_t));
   port[port_num].owner = current_pid;
   port[port_num].IO = IO[port_num];
   port[port_num].write_ok = 1;

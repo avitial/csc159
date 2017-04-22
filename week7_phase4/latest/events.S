@@ -27,19 +27,6 @@ ENTRY(TimerEvent)           // push eflags, cs, eip (by circuit)
 	pushl $TIMER_EVENT   // push event_num
 	jmp CommonPart
 
-CommonPart:
-	pusha           // push all: e-a/c/d/b-x, e-s/b-p, e-s/d-i
-	pushl %ds       // push 4 data seg registers
-	pushl %es
-	pushl %fs
-	pushl %gs
-	movl %esp, %ecx	// copy TF addr (esp) to ecx
-	cld             // clear direction flag bit
-	SET_K_SEGS      // set kernel data segment registers
-	leal k_stack + K_STACK_SIZE, %esp // point esp to kernel stack
-	pushl %ecx      // push ecx (TF addr) there
-	call CNAME(Kernel)                // call Kernel code
-
 ENTRY(GetPidEvent)
 	pushl $GETPID_EVENT
 	jmp CommonPart
@@ -79,3 +66,16 @@ ENTRY(PortWriteEvent)
 ENTRY(PortReadEvent)
   pushl $PORTREAD_EVENT
   jmp CommonPart
+
+CommonPart:
+  pusha           // push all: e-a/c/d/b-x, e-s/b-p, e-s/d-i
+  pushl %ds       // push 4 data seg registers
+  pushl %es 
+  pushl %fs 
+  pushl %gs 
+  movl %esp, %ecx // copy TF addr (esp) to ecx
+  cld             // clear direction flag bit
+  SET_K_SEGS      // set kernel data segment registers
+  leal k_stack + K_STACK_SIZE, %esp // point esp to kernel stack
+  pushl %ecx      // push ecx (TF addr) there
+  call CNAME(Kernel)                // call Kernel code
