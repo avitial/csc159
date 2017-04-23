@@ -3,10 +3,10 @@
 #ifndef __PROC_H__
 #define __PROC_H__
 
-void Init(void); // PID 1, eternal, never preempted
-void UserProc(void); // PID 2, 3, ...
+void Init(void);      // PID 1, eternal, never preempted
+void UserProc(void);  // PID 2, 3, ...
 void Vehicle(void);
-void TermProc(void);
+void TermProc(void);  // PID for terminal
 void TermCd(char *, char *, int);
 void TermCat(char *, char *, int);
 void TermLs(char *, int);

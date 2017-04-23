@@ -88,4 +88,3 @@ fd_t fd_array[FD_NUM];  // one file descriptor for every OPEN_OBJ call
 // *********************************************************************
 
 #endif __FS_DATA_H__
-

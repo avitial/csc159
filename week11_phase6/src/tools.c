@@ -6,11 +6,7 @@
 
 // clear DRAM data blocks by filling zeroes
 void MyBzero(char *p, int size) {
-	int i;
-	for(i=0; i<size; i++){
-    *p = 0;
-    p++;
-  }
+	while(size--) *p++ = 0; // one statement as per Chang's feedback
 }
 
 // dequeue, return 1st integer in array, and move all forward
@@ -42,7 +38,6 @@ void EnQ(int data, q_t *p){
 	p->size++; //= p->size + 1;
 }
 
-//phase 6
 //return the length (num of bytes) of a string p points
 int MyStrlen(char *p){
   int len = 0;
