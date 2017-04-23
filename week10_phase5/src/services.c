@@ -106,7 +106,6 @@ void PortWrite(char *p, int port_num){
 
 void PortRead(char *p, int port_num){
   int size = 0;
-  //while(*p != '\r' || size != BUFF_SIZE -1){
   while(1){
     SemWait(port[port_num].read_sid);
     asm("pushl %%eax;
@@ -119,11 +118,13 @@ void PortRead(char *p, int port_num){
     :
     : "g" ((int)p), "g" (port_num)
     );
-    p++;
-    size++;
-    if(*p == '\n'){ // if char is newline
+
+    if(*p == '\r'){ // if char is newline
       break;
     }
+    p++;
+    size++;
+
     if(size == BUFF_SIZE-1){ // if size equals buffsize
       break;
     }

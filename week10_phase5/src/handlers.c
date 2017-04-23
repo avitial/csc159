@@ -12,27 +12,26 @@
 void NewProcHandler(func_ptr_t p){  // arg: where process code starts
 	int pid; 
 
-  if((free_q.size == 0)){       // this may occur for testing 
+  if((free_q.size == 0)){           // this may occur for testing 
   	cons_printf("Kernel Panic: no more PID left!\n");
-    breakpoint();               // breakpoint() into GDB
+    breakpoint();                   // breakpoint() into GDB
+    return;
 	}
-  pid = DeQ(&free_q);           // get 'pid' from free_q
+  pid = DeQ(&free_q);               // get 'pid' from free_q
   MyBzero((char *)&pcb[pid], sizeof(pcb_t));
   MyBzero((char *)&proc_stack[pid], PROC_STACK_SIZE); // use tool to clear the PCB (indexed by 'pid')
-  pcb[pid].TF_p = (TF_t *)&proc_stack[pid][PROC_STACK_SIZE - sizeof(TF_t)]; // point TF_p to highest area in stack
-  
-  // then fill out the eip of the TF
-	pcb[pid].TF_p->eip = (int)p; // new process code
-	pcb[pid].TF_p->eflags = EF_DEFAULT_VALUE|EF_INTR; // EFL will enable intr!
-  pcb[pid].TF_p->cs = get_cs(); // duplicate from current CPU
-	pcb[pid].TF_p->ds = get_ds(); // duplicate from current CPU
-	pcb[pid].TF_p->es = get_es(); // duplicate from current CPU
-	pcb[pid].TF_p->fs = get_fs(); // duplicate from current CPU
-	pcb[pid].TF_p->gs = get_gs(); // duplicate from current CPU
-
-  pcb[pid].cpu_time = 0;        //pcb[pid].total_cpu_time = 0;
-  pcb[pid].state = READY;
+  pcb[pid].state = READY; 
   EnQ(pid, &ready_q);
+
+  pcb[pid].TF_p = (TF_t *)&proc_stack[pid][PROC_STACK_SIZE - sizeof(TF_t)]; // point TF_p to highest area in stack
+  // then fill out the eip of the TF
+	pcb[pid].TF_p->eip = (unsigned int)p; // new process code
+	pcb[pid].TF_p->eflags = EF_DEFAULT_VALUE|EF_INTR; // EFL will enable intr!
+  pcb[pid].TF_p->cs = get_cs();         // duplicate from current CPU
+	pcb[pid].TF_p->ds = get_ds();         // duplicate from current CPU
+	pcb[pid].TF_p->es = get_es();         // duplicate from current CPU
+	pcb[pid].TF_p->fs = get_fs();         // duplicate from current CPU
+	pcb[pid].TF_p->gs = get_gs();         // duplicate from current CPU
 
   if(pid>9){
     ch_p[pid*80+40]=0xf00+ (pid/10+'0');
@@ -41,23 +40,19 @@ void NewProcHandler(func_ptr_t p){  // arg: where process code starts
     ch_p[pid*80+40]=0xf00+pid+'0';
   }
   ch_p[pid*80+43] = 0xf00 +'r';
-  
-  return;
 }
 
 void GetPidHandler(void){
-  pcb[current_pid].TF_p->eax = current_pid;
-  
-  return;
+  pcb[current_pid].TF_p->eax = (unsigned int) current_pid;
 }
 
 // count cpu_time of running process and preempt it if reaching limit
 void TimerHandler(void){
   int i;
-  current_time++;                 
   pcb[current_pid].cpu_time++;    // upcount cpu_time of the process (PID is current_pid)
+  current_time++;
 
-  for(i=1; i<Q_SIZE; i++){        // phase 2  
+  for(i=1; i<=Q_SIZE; i++){
     if((pcb[i].state == SLEEP) && (pcb[i].wake_time == current_time)){ 
       EnQ(i, &ready_q);           // append pid to ready_q
       pcb[i].state = READY;       // update proc state
@@ -72,12 +67,10 @@ void TimerHandler(void){
     current_pid = 0;              // no longer runs
   } 
   outportb(0x20, 0x60);           // Don't forget: notify PIC event-handling done
-  
-  return;
 }
 
 void SleepHandler(int sleep_amount){
-  pcb[current_pid].wake_time = (current_time + (100 * sleep_amount)); // calc future wake time in pcb
+  pcb[current_pid].wake_time = current_time + (100 * sleep_amount); // calc future wake time in pcb
   pcb[current_pid].state = SLEEP; // update proc state
   ch_p[current_pid*80+43] = 0xf00 +'S';
   current_pid = 0;                // reset current_pid
@@ -89,16 +82,16 @@ void SemAllocHandler(int passes){
   for(sid=0; sid<PROC_NUM; sid++){
     if(sem[sid].owner == 0) break; 
   }
-
+  MyBzero((char *)&sem[sid], (sizeof(sem_t)*Q_SIZE));
   if(sid == PROC_NUM){
     cons_printf("Kernel panic: no more semaphores left!\n");
     return; 
   }
   sem[sid].passes = passes;
-  MyBzero((char *)&sem[sid].wait_q, sizeof(q_t));
-  sem[sid].wait_q.size = 0;
   sem[sid].owner = current_pid;
   pcb[current_pid].TF_p -> ebx = sid; 
+  MyBzero((char *)&sem[sid].wait_q, sizeof(q_t));
+  ch_p[50] = 0xf00 + sem[sid].passes + '0';
 }
 
 void SemWaitHandler(int sid){
@@ -121,6 +114,7 @@ void SemPostHandler(int sid){
   if((sem[sid].wait_q.size == 0)){
     sem[sid].passes++;
     ch_p[48] = 0xf00 + sem[sid].passes + '0';
+    return;
   } else{
     free_pid = DeQ(&sem[sid].wait_q);
     EnQ(free_pid, &ready_q);
@@ -168,7 +162,7 @@ void PortWriteOne(int port_num){
   char one;
 
   if(port[port_num].write_q.size == 0 && port[port_num].loopback_q.size == 0){
-    port[port_num].write_ok = 1; // record missing write event
+    port[port_num].write_ok = 1;                // record missing write event
     return;
   }
 
@@ -179,7 +173,7 @@ void PortWriteOne(int port_num){
     SemPostHandler(port[port_num].write_sid);
   }
   outportb(port[port_num].IO+DATA, one);
-  port[port_num].write_ok = 0; // will use write event below
+  port[port_num].write_ok = 0;                  // will use write event below
 }
 
 void PortReadOne(int port_num){
@@ -205,13 +199,15 @@ void PortHandler(){
 
   for(port_num=0; port_num<PORT_NUM; port_num++){ // PORT_NUM equals 3 (COM Ports 2, 3 4)
     intr_type = inportb(port[port_num].IO+IIR);
+
     if(intr_type == IIR_RXRDY){
       PortReadOne(port_num);
-      break;
     }
-    if(intr_type == IIR_TXRDY && port[port_num].write_ok == 1){
+    if(intr_type == IIR_TXRDY){
       PortWriteOne(port_num);
-      break;
+    }
+    if(port[port_num].write_ok == 1){
+      PortWriteOne(port_num);
     }
   }
   outportb(0x20, 0x63);
@@ -231,7 +227,6 @@ void PortAllocHandler(int *eax){
     return;
   }
   *eax = port_num;
-  //MyBzero((char *)&port[port_num].IO+DATA, sizeof(DATA));
   MyBzero((char *)&port[port_num], sizeof(port_t));
   port[port_num].owner = current_pid;
   port[port_num].IO = IO[port_num];
@@ -251,11 +246,11 @@ void PortAllocHandler(int *eax){
 }
 
 void PortWriteHandler(char one, int port_num){
-  if(port[port_num].write_q.size == Q_SIZE){
+  if(port[port_num].write_q.size == BUFF_SIZE){
     cons_printf("Kernel Panic: terminal is not prompting (fast enough)?\n");
     return;
   }
-  EnQ(one, &port[port_num].write_q);//buffer one
+  EnQ(one, &port[port_num].write_q);
   if(port[port_num].write_ok == 1){
     PortWriteOne(port_num);
   }
