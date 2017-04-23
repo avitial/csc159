@@ -6,11 +6,7 @@
 
 // clear DRAM data blocks by filling zeroes
 void MyBzero(char *p, int size) {
-	int i;
-	for(i=0; i<size; i++){
-    *p = 0;
-    p++;
-  }
+  while(size--) *p++=0; 
 }
 
 // dequeue, return 1st integer in array, and move all forward
@@ -22,9 +18,8 @@ int DeQ(q_t *p) { // return 0 if q[] is empty
 		return data;
 	} else{
     data = p->q[0];
-    p->size--;
     
-    for(i=0; i<Q_SIZE-1; i++){
+    for(i=0; i<Q_SIZE; i++){
       p->q[i] = p->q[i+1];  
     }
     /*
@@ -48,6 +43,7 @@ int DeQ(q_t *p) { // return 0 if q[] is empty
       p->q[17] = p->q[18];
       p->q[18] = p->q[19];
     */
+    p->size--;
 }
 	return data;
 }

@@ -5,9 +5,15 @@
 
 int GetPid(void);
 void Sleep(int);
+
 int SemAlloc(int);
-int SemWait(int);
-int SemPost(int);
-int SysPrint(char *);
+void SemWait(int);
+void SemPost(int);
+
+void SysPrint(char *);
+
+int PortAlloc(void);
+void PortWrite(char *, int);
+void PortRead(char *, int);
 
 #endif

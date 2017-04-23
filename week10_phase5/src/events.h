@@ -18,10 +18,15 @@
 #define SEMALLOC_EVENT 0x66 // IDT entry #102, for sem alloc event
 #define SEMWAIT_EVENT 0x67  // IDT entry #103, for sem wait event
 #define SEMPOST_EVENT 0x68  // IDT entry #104, for sem post event
-// event for device driver (phase4)
+// event for device driver: busy poll (phase4)
 #define SYSPRINT_EVENT 0x69 // IDT entry #105, for sys print event
-#ifndef ASSEMBLER           // skip below if ASSEMBLER defined (from an assembly code)
+// events for device driver: interrupt driven (phase5)
+#define PORT_EVENT 0x23     // IDT entry for IRQ4
+#define PORTALLOC_EVENT 0x6A// IDT entry #106, for port alloc event
+#define PORTWRITE_EVENT 0x6B
+#define PORTREAD_EVENT 0x6C // IDT entry #108, for port read event
                             // since below is not in assembler syntax
+#ifndef ASSEMBLER           // skip below if ASSEMBLER defined (from an assembly code)
 __BEGIN_DECLS
 
 #include "types.h"          // for 'TF_t' below
@@ -34,6 +39,10 @@ extern void SemAllocEvent(); // coded in events.S, code for Semaphores
 extern void SemWaitEvent();  // coded in events.S, code for Semaphores
 extern void SemPostEvent();  // coded in events.S, code for Semaphores
 extern void SysPrintEvent(); // coded in events.S, code for Device Driver
+extern void PortEvent();
+extern void PortAllocEvent();
+extern void PortWriteEvent();
+extern void PortReadEvent();
 
 __END_DECLS
 
