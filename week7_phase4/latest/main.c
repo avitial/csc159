@@ -78,7 +78,7 @@ int main() {
   //outportb(0x21, ~0x01);      // set PIC mask to open up for timer IRQ0 only
   outportb(0x21, ~0x19);  // set PIC mask for IRQ1, IRQ3 and IRQ4
 
-	NewProcHandler(TermProc);   // call NewProcHandler(Init) to create Init proc
+//	NewProcHandler(TermProc);   // call NewProcHandler(Init) to create Init proc
   NewProcHandler(TermProc);   // call NewProcHandler(Init) to create Init proc
   NewProcHandler(Init);   // call NewProcHandler(Init) to create Init proc
   Scheduler();            // call scheduler to select current_pid (if needed)
@@ -131,25 +131,6 @@ void Kernel(TF_t *TF_p) { // kernel code exec (at least 100 times/second)
       breakpoint();
   }
 
-  // moving the keyboard input to Init (in proc.c/h)
-	/*if(cons_kbhit()){ // if a key is pressed on Target PC
-		key = cons_getchar(); // get the key
-
-		switch(key){ // switch by the key obtained {
-			case 'n':
-				NewProcHandler(UserProc); // call NewProcHandler to create UserProc
-			  break;
-			case 'b':
-			  breakpoint(); // go into gdb
-			  break;
-			case 'v':
-         NewProcHandler(Vehicle); // call Vehicle to create vehicle proc
-         break;
-      case 'q':
-			  exit(0); // quit program
-		}
-	}
-  */
 	Scheduler();          // call scheduler to select current_pid (if needed)
 	Loader(pcb[current_pid].TF_p); // call Loader with the TF address of current_pid
 } // end Kernel()

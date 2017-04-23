@@ -7,10 +7,10 @@ int GetPid(void);
 void Sleep(int);
 
 int SemAlloc(int);
-int SemWait(int);
-int SemPost(int);
+void SemWait(int);
+void SemPost(int);
 
-int SysPrint(char *);
+void SysPrint(char *);
 
 int PortAlloc(void);
 void PortWrite(char *, int);

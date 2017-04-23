@@ -31,7 +31,7 @@ void Init(void) {
       }   
     }
 
-	  for(i=0; i<FAST_LOOP; i++){ //loop for LOOP times { // to cause approx 1 second of delay
+	  for(i=0; i<LOOP; i++){ //loop for LOOP times { // to cause approx 1 second of delay
       asm("inb $0x80");         // call asm("inb $0x80") which delay .6 microsecond
     }
   }
@@ -59,7 +59,7 @@ void Vehicle(void){             //phase 3 tester (multiple processes)
   while(1){
     ch_p [pid*80+45]= 0xf00 + 'f';  //show i'm off the bridge
     
-    for(i =0; i<FAST_LOOP; i++){    //spend a sec in RUN state
+    for(i =0; i<LOOP; i++){    //spend a sec in RUN state
       asm("inb $0x80");           
     }
     SemWait(vehicle_sid);           //ask for a pass

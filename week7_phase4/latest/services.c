@@ -23,7 +23,6 @@ void Sleep(int sleep_amount){ // function receives arguments, return an integer
 		:
 		: "g" (sleep_amount)      //when having an input, the input line will b : "g" (seconds)
 	);
-  return;
 }
 
 int SemAlloc(int passes){
@@ -59,7 +58,6 @@ void SemPost(int sid){
     :
     : "g" (sid)
   );
-  return;
 }
 
 void SysPrint(int *str){
@@ -84,7 +82,7 @@ int PortAlloc(void){
   );
   Sleep(1);
   port[port_num].write_sid = SemAlloc(Q_SIZE);
-  port[port_num].read_sid = SemAlloc(1);
+  port[port_num].read_sid = SemAlloc(0);
   port[port_num].read_q.size = 0;
   return port_num;
 }
@@ -104,8 +102,6 @@ void PortWrite(char *p, int port_num){
     );
     p++;
   }
-
-  return;
 }
 
 void PortRead(char *p, int port_num){
@@ -133,6 +129,4 @@ void PortRead(char *p, int port_num){
     }
   } // end of forever loop
   *p = '\0'; // null-terminate str, overwrite \r
-
-  return;
 }

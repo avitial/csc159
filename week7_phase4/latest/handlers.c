@@ -81,8 +81,6 @@ void SleepHandler(int sleep_amount){
   pcb[current_pid].state = SLEEP; // update proc state
   ch_p[current_pid*80+43] = 0xf00 +'S';
   current_pid = 0;                // reset current_pid
-
-  return;
 }
 
 void SemAllocHandler(int passes){
@@ -101,8 +99,6 @@ void SemAllocHandler(int passes){
   sem[sid].wait_q.size = 0;
   sem[sid].owner = current_pid;
   pcb[current_pid].TF_p -> ebx = sid; 
-  
-  return;
 }
 
 void SemWaitHandler(int sid){
@@ -117,7 +113,6 @@ void SemWaitHandler(int sid){
     ch_p[current_pid * 80 + 43] = 0xf00 + 'W';
     current_pid = 0;
   }
-  return;
 }
 
 void SemPostHandler(int sid){
@@ -132,7 +127,6 @@ void SemPostHandler(int sid){
     pcb[free_pid].state = READY;
     ch_p[free_pid*80+43] = 0xf00 +'r';
   }
-  return;
 }
 
 void SysPrintHandler(char *str){
@@ -186,8 +180,6 @@ void PortWriteOne(int port_num){
   }
   outportb(port[port_num].IO+DATA, one);
   port[port_num].write_ok = 0; // will use write event below
-
-  return;
 }
 
 void PortReadOne(int port_num){
@@ -206,8 +198,6 @@ void PortReadOne(int port_num){
     EnQ('\n', &port[port_num].loopback_q);
   }
   SemPostHandler(port[port_num].read_sid);  
-  
-  return;
 }
 
 void PortHandler(){
@@ -223,26 +213,9 @@ void PortHandler(){
       PortWriteOne(port_num);
       break;
     }
-
-    /*
-    while((intr_type = inportb(port[port_num].IO+IIR))){ // set
-      switch(intr_type){
-        case IIR_RXRDY:
-          PortReadOne(port_num);
-          break;
-        case IIR_TXRDY:
-          PortWriteOne(port_num);
-          break;
-      }
-      if(port[port_num].write_ok == 1){
-        PortWriteOne(port_num);
-      }
-    }*/
   }
   outportb(0x20, 0x63);
   outportb(0x20, 0x64);
-
-  return;
 }
 
 void PortAllocHandler(int *eax){
@@ -275,8 +248,6 @@ void PortAllocHandler(int *eax){
   outportb(port[port_num].IO+MCR, MCR_DTR|MCR_RTS|MCR_IENABLE);
   asm("inb $0x80");
   outportb(port[port_num].IO+IER, IER_ERXRDY|IER_ETXRDY);
-
-  return;
 }
 
 void PortWriteHandler(char one, int port_num){
@@ -288,7 +259,6 @@ void PortWriteHandler(char one, int port_num){
   if(port[port_num].write_ok == 1){
     PortWriteOne(port_num);
   }
-  return;
 }
 
 void PortReadHandler(char *one, int port_num){
@@ -297,5 +267,4 @@ void PortReadHandler(char *one, int port_num){
     return;
   }
   *one = DeQ(&port[port_num].read_q);
-  return;
 }
