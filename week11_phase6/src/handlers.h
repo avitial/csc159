@@ -23,11 +23,11 @@ void PortReadHandler(char *, int);
 void FSfindHandler(void);
 void FSopenHandler(void);
 void FSreadHandler(void);
-int FScanAccessFD(int fd, int owner);
-int FSallocFD(int owner);
-dir_t *FSfindName(char *name );
-dir_t *FSfindNameSub(char *name, dir_t *this_dir);
-void FSdir2attr(dir_t *dir_p, attr_t *attr_p);
+int FScanAccessFD(int, int);
+int FSallocFD(int);
+dir_t *FSfindName(char *);
+dir_t *FSfindNameSub(char *, dir_t *);
+void FSdir2attr(dir_t *, attr_t *);
 void FScloseHandler(void);
 
 #endif

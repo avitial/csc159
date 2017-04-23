@@ -8,6 +8,7 @@
 #include "data.h"       // current_pid needed below
 #include "proc.h"       // prototypes of processes
 #include "handlers.h"
+#include "tools.h"
 
 // Init PID 1, always ready to run, never preempted
 void Init(void) {
@@ -71,18 +72,56 @@ void Vehicle(void){ //phase 3 tester (multiple processes)
 }
 
 void TermProc(void){
-  int my_port;
-  char str_read[BUFF_SIZE]; // size 101
+  int my_port, len;
+  //int i;
+  char login_str[BUFF_SIZE], passwd_str[BUFF_SIZE], cmd_str[BUFF_SIZE], cwd[BUFF_SIZE];
   my_port = PortAlloc(); // init port device and port_t data associated
-  
+
   while(1){
-    PortWrite("Hello, World! Team GidOS here!\n\r", my_port); // \r also!
-    PortWrite("Now enter: ", my_port);
-    PortRead(str_read, my_port);
-    cons_printf("Read from port #%d: %s\n", my_port, str_read);
+    while(1){
+    PortWrite("Please enter your login:\n\r", my_port); // \r also!
+    PortRead(login_str, my_port);
+    PortWrite("Please enter your password:\n\r", my_port); // \r also!
+    PortRead(passwd_str, my_port);
+    if(login_str == 0){
+      continue;
+    }
+    len = MyStrlen(login_str);
+    if(len != MyStrlen(passwd_str)){
+      continue;
+    }
+    
+    if(MyStrcmp(login_str, passwd_str, len)){
+      cwd[0] = '/';
+    } else{
+      continue;
+    }
+    while(1){
+      PortWrite("Please enter command string: \n\r", my_port);
+      PortRead(cmd_str, my_port);
+      if(MyStrlen(cmd_str)==0){
+        continue;
+      }
+      len = MyStrlen(cmd_str);
+      if(MyStrcmp(cmd_str, "exit\0", len)){
+        break;
+      }
+      if(MyStrcmp(cmd_str, "pwd\0",len)){
+        PortWrite(cmd_str, my_port);
+      } else if (MyStrcmp(cmd_str, "cd ",len)){
+        TermCd(cmd_str, cwd, my_port);
+      } else if(MyStrcmp(cmd_str, "ls\0",len)){
+        TermLs(cwd, my_port);
+      } else if(MyStrcmp(cmd_str, "cat ",len)){
+        TermCat(cmd_str, cwd, my_port);
+      } else{
+        PortWrite("Command not recognized!\n\r", my_port);
+      }
+    }
+    }
   }
 }
-//phase6
+
 //need to add stuff for TermProc
 void TermCd(char *name, char *cwd, int my_port){
   char attr_data[BUFF_SIZE];
@@ -90,16 +129,91 @@ void TermCd(char *name, char *cwd, int my_port){
   int str_len = MyStrlen(name);
   
   if(str_len == 0) return;
-  if(name == ".\0") return;
-  if(name == "/\0" || name == "..\0"){
+  if(MyStrcmp(name, ".\0", str_len)) return;
+  if(MyStrcmp(name, "/\0", str_len) || MyStrcmp(name, "..\0", str_len)){
     cwd = "/";
     return;
   }
-  FSfind(*name, *cwd, *attr_data);
-  if(sizeof(attr_data)==0){
-    cons_printf("Not found");
+  FSfind(name, cwd, attr_data);
+
+  if(MyStrlen(attr_data) == 0){
+    PortWrite("Not found\n\r", my_port);
     return;
   }
   attr_p = (attr_t*)attr_data;
- // if(attr_p->mode 
+  
+  if(attr_p->mode == MODE_FILE){
+   PortWrite("Cannot cd a file\n\r", my_port);
+   return;
+  }
+  MyStrcpy(cwd, name);
+}
+
+void TermCat(char *name, char *cwd, int my_port){
+  char read_data[BUFF_SIZE], attr_data[BUFF_SIZE];
+  attr_t *attr_p;
+  int my_fd;
+
+  FSfind(name, cwd, attr_data);
+  
+  if(MyStrlen(attr_data) == 0){
+    PortWrite("Not found\n\r", my_port);
+    return;
+  }
+  attr_p = (attr_t *)attr_data; 
+  
+  if(attr_p->mode == MODE_DIR){
+      PortWrite("Not a directory\n\r", my_port);
+      return;
+  }
+  my_fd = FSopen(name, cwd);
+
+  while(1){
+    FSread(my_fd, read_data); 
+    if(MyStrlen(read_data) == 0){
+      PortWrite(read_data, my_port);
+      break;
+    }
+  }
+  FSclose(my_fd);
+}
+
+void TermLs(char *cwd, int my_port){
+  char ls_str[BUFF_SIZE], attr_data[BUFF_SIZE];
+  attr_t *attr_p;
+  int my_fd;
+
+  FSfind("", cwd, attr_data);
+
+  if(MyStrlen(attr_data) == 0){
+    PortWrite("Not found\n\r", my_port);
+    return;
+  }
+  attr_p = (attr_t *)attr_data;
+  if(attr_p->mode == MODE_FILE){
+    PortWrite("Cannot ls a file\n\r", my_port);
+    return;
+  }
+  my_fd = FSopen("", cwd);
+  
+  while(1){
+    FSread(my_fd, attr_data);
+    
+    if(MyStrlen(attr_data) == 0){
+      break;
+    }
+    attr_p = (attr_t *)attr_data;
+    Attr2Str(attr_p, ls_str);
+    PortWrite(ls_str, my_port);
+  }
+  FSclose(my_fd);
+}
+
+void Attr2Str(attr_t *attr_p, char *str){
+  char *name = (char *)(attr_p + 1);
+  sprintf(str, "     - - - -    SIZE %4d    NAME  %s\n\r", attr_p->size, name);
+  if ( A_ISDIR(attr_p->mode) ) str[5] = 'D';          // mode is directory
+  if ( QBIT_ON(attr_p->mode, A_ROTH) ) str[7] = 'R';  // mode is readable
+  if ( QBIT_ON(attr_p->mode, A_WOTH) ) str[9] = 'W';  // mode is writable
+  if ( QBIT_ON(attr_p->mode, A_XOTH) ) str[11] = 'X'; // mode is executable
 }

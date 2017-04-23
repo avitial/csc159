@@ -6,13 +6,15 @@
 int GetPid(void);
 void Sleep(int);
 int SemAlloc(int);
-int SemWait(int);
-int SemPost(int);
-int SysPrint(char *);
-
+void SemWait(int);
+void SemPost(int);
+void SysPrint(char *);
+int PortAlloc(void);
+void PortWrite(char *, int);
+void PortRead(char *, int);
 //phase 6
-void FSfind(char *name, char *cwd, char *data);
-int FSopen(char *name, char *cwd);
-void FSread(int fd, char *data);
-void FSclose(int fd);
+void FSfind(char *, char *, char *);
+int FSopen(char *, char *);
+void FSread(int, char *);
+void FSclose(int);
 #endif

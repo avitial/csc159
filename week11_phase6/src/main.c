@@ -39,11 +39,10 @@ void Scheduler(){               // choose a PID as current_pid to load/run
 
 // OS bootstrap from main() which is process 0, so we do not use this PID
 int main() {
-  int i;
+  int fd_num, i;
   
   MyBzero((char *)&ready_q, sizeof(q_t));
   MyBzero((char *)&free_q, sizeof(q_t));
-  MyBzero((char *)&sleep_q, sizeof(q_t));
   MyBzero((char *)&sem, (sizeof(sem_t))*Q_SIZE);
   MyBzero((char *)&port, (sizeof(port_t)*PORT_NUM));
 
@@ -73,14 +72,12 @@ int main() {
   IDTEntrySet(PORTWRITE_EVENT, PortWriteEvent);
   IDTEntrySet(PORTREAD_EVENT, PortReadEvent);
   //phase6
-  IDTEntrySet(0x6D, FSfindEvent);
-  IDTEntrySet(0x6E, FSopenEvent);
-  IDTEntrySet(0x6F, FSreadEvent);
-  IDTEntrySet(0x70, FScloseEvent);
+  IDTEntrySet(FSFIND_EVENT, FSfindEvent);
+  IDTEntrySet(FSOPEN_EVENT, FSopenEvent);
+  IDTEntrySet(FSREAD_EVENT, FSreadEvent);
+  IDTEntrySet(FSCLOSE_EVENT, FScloseEvent);
   
   //phase 6
-  int fd_num;
-  
   for(fd_num = 0; fd_num<FD_NUM-1; fd_num++){
     fd_array[fd_num].owner = 0;
   }

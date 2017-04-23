@@ -26,7 +26,7 @@
 // events for file services (phase 6_
 #define FSFIND_EVENT    0X6D
 #define FSOPEN_EVENT    0X6E
-#define FEREAD_EVENT    0x6F
+#define FSREAD_EVENT    0x6F
 #define FSCLOSE_EVENT   0X70
 
 #ifndef ASSEMBLER             // skip below if ASSEMBLER defined (from an assembly code)
