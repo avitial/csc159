@@ -135,8 +135,48 @@ void SysPrintHandler(char *str){
   outportb(printer_control, 16);                // 1<<4 is PC_SLCTIN
   code = inportb(printer_status);               // read printer status
   
+<<<<<<< HEAD
+  if(port[port_num].write_q.size == 0 && port[port_num].loopback_q.size == 0){
+    port[port_num].write_ok = 1; // record missing write event
+    return;
+  }
+
+  if(port[port_num].loopback_q.size != 0){
+    one = DeQ(&port[port_num].loopback_q);
+  } else{
+   // one = DeQ(&port[port_num].write_q);
+   //  SemPostHandler(port[port_num].write_sid);
+  }
+
+  one = DeQ(&port[port_num].write_q);
+  SemPostHandler(port[port_num].write_sid);
+  outportb(port[port_num].IO+DATA, one);
+  port[port_num].write_ok = 0; // will use write event below
+  return;
+} // end of PortWriteOne();
+
+void PortReadOne(int port_num){
+  char one;
+  one = inportb(port[port_num].IO+DATA);
+  if(port[port_num].read_q.size == Q_SIZE){
+    cons_printf("Kernel Panic: you are typing on terminal is super fast!\n");
+    return;
+  }
+  EnQ(one, &port[port_num].read_q);
+  EnQ(one, &port[port_num].loopback_q);
+  if(one == '\r'){
+    EnQ('\n', &port[port_num].loopback_q);
+  }
+  SemPostHandler(port[port_num].read_sid);  
+  return;
+} // end of PortReadOne();
+
+void PortHandler(void){
+  int port_num, intr_type; 
+=======
   for(i=0; i<50; i++) asm("inb $0x80");         // needs some delay
     outportb(printer_control, 4 | 8 );          // 1<<2 is PC_INIT, 1<<3 PC_SLCTIN
+>>>>>>> 418cafa0983ab8bbd624842d0fe8a74f1b07fa71
   
     while(*str) {
       outportb(printer_data, *str);             // write char to printer data
