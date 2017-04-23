@@ -14,25 +14,24 @@ void Init(void) {
   int i;
   char key;
   char str[] = " Hello, World! Team GidOS: Eloisa Esparza and Luis Avitia\n\r";
-
+  
   while(1){
-    if(cons_kbhit()){           // if a key is pressed on Target PC
-      key = cons_getchar();     // get the key
-
-      switch(key){              // switch by the key obtained {
+    if(cons_kbhit()){ // if a key is pressed on Target PC
+      key = cons_getchar(); // get the key
+      
+      switch(key){ // switch by the key obtained {
         case 'p':
           SysPrintHandler(str); // call SysPrintHandler to print
           break;
         case 'b':
-          breakpoint();         // go into gdb
+          breakpoint(); // go into gdb
           break;
         case 'q':
-          exit(0);              // quit program
-      }   
+          exit(0); // quit program
+      }
     }
-
-	  for(i=0; i<FAST_LOOP; i++){ //loop for LOOP times { // to cause approx 1 second of delay
-      asm("inb $0x80");         // call asm("inb $0x80") which delay .6 microsecond
+    for(i=0; i<LOOP; i++){ //loop for LOOP times { // to cause approx 1 second of delay
+      asm("inb $0x80"); // call asm("inb $0x80") which delay .6 microsecond
     }
   }
 }
@@ -43,39 +42,53 @@ void UserProc(void) {
   pid = GetPid();
   
   while(1){
-    sleep_amount = pid; 
-	  cons_printf("%d..", pid);   //show on Target PC: "%d..", current_pid 
+    sleep_amount = pid;
+    cons_printf("%d..", pid); //show on Target PC: "%d..", current_pid
     Sleep(sleep_amount);
   }
 }
 
-void Vehicle(void){             //phase 3 tester (multiple processes)
+void Vehicle(void){ //phase 3 tester (multiple processes)
   int i, pid;
   int sleep_amount = 1;
+  
   if(vehicle_sid == -1){
     vehicle_sid = SemAlloc(3); //max passes 3
   }
   pid = GetPid();
+
   while(1){
-    ch_p [pid*80+45]= 0xf00 + 'f';  //show i'm off the bridge
+    ch_p [pid*80+45]= 0xf00 + 'f'; //show i'm off the bridge
     
-    for(i =0; i<FAST_LOOP; i++){    //spend a sec in RUN state
-      asm("inb $0x80");           
+    for(i =0; i<LOOP; i++){ //spend a sec in RUN state
+      asm("inb $0x80");
     }
-    SemWait(vehicle_sid);           //ask for a pass
-    ch_p[pid*80+45] = 0xf00 + 'o';  //show i'm on the bridge
+    SemWait(vehicle_sid); //ask for a pass
+    ch_p[pid*80+45] = 0xf00 + 'o'; //show i'm on the bridge
     Sleep(sleep_amount);
-    SemPost(vehicle_sid);           //return the pass
+    SemPost(vehicle_sid); //return the pass
   }
 }
 
-
+void TermProc(void){
+  int my_port;
+  char str_read[BUFF_SIZE]; // size 101
+  my_port = PortAlloc(); // init port device and port_t data associated
+  
+  while(1){
+    PortWrite("Hello, World! Team GidOS here!\n\r", my_port); // \r also!
+    PortWrite("Now enter: ", my_port);
+    PortRead(str_read, my_port);
+    cons_printf("Read from port #%d: %s\n", my_port, str_read);
+  }
+}
 //phase6
 //need to add stuff for TermProc
 void TermCd(char *name, char *cwd, int my_port){
   char attr_data[BUFF_SIZE];
   attr_t *attr_p;
   int str_len = MyStrlen(name);
+  
   if(str_len == 0) return;
   if(name == ".\0") return;
   if(name == "/\0" || name == "..\0"){

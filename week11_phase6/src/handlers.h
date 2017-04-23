@@ -13,6 +13,12 @@ void SemAllocHandler(int);
 void SemWaitHandler(int);
 void SemPostHandler(int);
 void SysPrintHandler(char *);
+void PortWriteOne(int);
+void PortReadOne(int);
+void PortHandler(void);
+void PortAllocHandler(int *);
+void PortWriteHandler(char, int);
+void PortReadHandler(char *, int);
 //phase6
 void FSfindHandler(void);
 void FSopenHandler(void);
@@ -23,4 +29,5 @@ dir_t *FSfindName(char *name );
 dir_t *FSfindNameSub(char *name, dir_t *this_dir);
 void FSdir2attr(dir_t *dir_p, attr_t *attr_p);
 void FScloseHandler(void);
+
 #endif

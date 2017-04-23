@@ -3,7 +3,9 @@
 #ifndef __PROC_H__
 #define __PROC_H__
 
-void Init(void);      // PID 1, eternal, never preempted
-void UserProc(void);  // PID 2, 3, ...
+void Init(void); // PID 1, eternal, never preempted
+void UserProc(void); // PID 2, 3, ...
 void Vehicle(void);
+void TermProc(void);
+
 #endif
