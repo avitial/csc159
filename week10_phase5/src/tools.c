@@ -22,29 +22,8 @@ int DeQ(q_t *p) { // return 0 if q[] is empty
     for(i=0; i<Q_SIZE; i++){
       p->q[i] = p->q[i+1];  
     }
-    /*
-      p->q[0] = p->q[1];
-      p->q[1] = p->q[2];
-      p->q[2] = p->q[3];
-      p->q[3] = p->q[4];
-      p->q[4] = p->q[5];
-      p->q[5] = p->q[6];
-      p->q[6] = p->q[7];
-      p->q[7] = p->q[8];
-      p->q[8] = p->q[9];
-      p->q[9] = p->q[10];
-      p->q[10] = p->q[11];
-      p->q[11] = p->q[12];
-      p->q[12] = p->q[13];
-      p->q[13] = p->q[14];
-      p->q[14] = p->q[15];
-      p->q[15] = p->q[16];
-      p->q[16] = p->q[17];
-      p->q[17] = p->q[18];
-      p->q[18] = p->q[19];
-    */
     p->size--;
-}
+  }
 	return data;
 }
 
@@ -55,5 +34,5 @@ void EnQ(int data, q_t *p){
 		return;
 	}
 	p->q[p->size] = data;
-	p->size++; //= p->size + 1;
+	p->size++;
 }

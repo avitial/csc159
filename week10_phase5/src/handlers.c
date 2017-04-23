@@ -150,9 +150,9 @@ void SysPrintHandler(char *str){
     
     if(i == LOOP*3) { // if 3 sec did pass (didn't ACK)
       cons_printf(">>> Printer timed out!\n");
-      break;  // abort printing
+      break;          // abort printing
     }
-    str++;    // move to print next character
+    str++;            // move to print next character
   } // while(*str)
 }
 
@@ -201,10 +201,8 @@ void PortHandler(){
     if(intr_type == IIR_RXRDY){
       PortReadOne(port_num);
     }
-    if(intr_type == IIR_TXRDY){
-      PortWriteOne(port_num);
-    }
-    if(port[port_num].write_ok == 1){
+
+    if(intr_type == IIR_TXRDY || port[port_num].write_ok == 1){
       PortWriteOne(port_num);
     }
   }
