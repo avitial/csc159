@@ -67,65 +67,7 @@ void SysPrint(int *str){
     popl %%eax"
     :   
     : "g" (str)
-<<<<<<< HEAD
     );
-}
-
-int PortAlloc(void){
-  int port_num;
-  asm("pushl %%eax;
-  int $0x6A;
-  movl %%eax, %0;
-  popl %%eax"
-  : "=g" (port_num)
-  :
-  );
-  Sleep(1);
-  port[port_num].write_sid = SemAlloc(Q_SIZE);
-  port[port_num].read_sid = SemAlloc(Q_SIZE);
-  port[port_num].read_q.size = 0;
-  return port_num;
-}
-
-void PortWrite(char *p, int port_num){
-  while(*p){
-    SemWait(port_num);
-    asm("pushl %%eax;
-       pushl %%ebx;
-       movl %1, %%eax; 
-       int $0x6B;
-       movl %%ebx, %0; 
-       popl %%ebx;
-       popl %%eax;"
-       :
-       : "g" ((int)*p), "g" (port_num)
-    );
-    p++;
-  }
-  return;
-}
-
-void PortRead(char *p, int port_num){
-  int size = 0;
-  while(*p != '\r' || size != BUFF_SIZE -1){
-    asm("pushl %%eax;
-      pushl %%ebx;
-      movl %1, %%eax; 
-      int $0x6C;
-      movl %%ebx, %0; 
-      popl %%ebx;
-      popl %%eax;"
-      :
-      : "g" ((int)p), "g" (port_num)
-    );
-    p++;
-    size++;
-  } // end of forever loop
-  *p = '\0'; // null-terminate str, overwrite \r
-  return;
-=======
-  );  
->>>>>>> 418cafa0983ab8bbd624842d0fe8a74f1b07fa71
 }
 
 int PortAlloc(void){
