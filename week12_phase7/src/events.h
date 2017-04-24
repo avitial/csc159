@@ -23,11 +23,15 @@
 #define PORTALLOC_EVENT 0x6A  // IDT entry #106, for port alloc event
 #define PORTWRITE_EVENT 0x6B  // IDT entry #107, for port write event
 #define PORTREAD_EVENT  0x6C  // IDT entry #108, for port read event
-// events for file services (phase 6_
-#define FSFIND_EVENT    0X6D
-#define FSOPEN_EVENT    0X6E
-#define FSREAD_EVENT    0x6F
-#define FSCLOSE_EVENT   0X70
+// events for file services (phase 6)
+#define FSFIND_EVENT    0X6D  // IDT entry #109, for file services find event
+#define FSOPEN_EVENT    0X6E  // IDT entry #110, for file services open event
+#define FSREAD_EVENT    0x6F  // IDT entry #111, for file services read event
+#define FSCLOSE_EVENT   0X70  // IDT entry #112, for file services close event
+// events for process life cycle (phase 7)
+#define FORK_EVENT      0x71  // IDT entry #113, for process life cycle fork event
+#define WAIT_EVENT      0x72  // IDT entry #114, for process life cycle wait event
+#define EXIT_EVENT      0x73  // IDT entry #115, for process life cycle exit event
 
 #ifndef ASSEMBLER             // skip below if ASSEMBLER defined (from an assembly code)
                               // since below is not in assembler syntax
@@ -51,6 +55,9 @@ extern void FSfindEvent(void);// coded in events.S, code for File Services
 extern void FSopenEvent(void);// coded in events.S, code for File Services
 extern void FSreadEvent(void);// coded in events.S, code for File Services
 extern void FScloseEvent(void);// coded in events.S, code for File Services
+extern void ForkEvent();      // coded in events.S, code for Process Life Cycle
+extern void WaitEvent();      // coded in events.S, code for Process Life Cycle
+extern void ExitEvent();      // coded in events.S, code for Process Live Cycle
 
 __END_DECLS
 

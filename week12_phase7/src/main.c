@@ -18,6 +18,7 @@ struct i386_gate *IDT_p;
 unsigned short *ch_p = (unsigned short*)0xB8000; // init ch_p pointer to vga
 sem_t sem[Q_SIZE];
 port_t port[PORT_NUM];
+mem_page_t mem_page[MEM_PAGE_NUM];
 
 void IDTEntrySet(int event_num, func_ptr_t event_addr){
 	struct i386_gate *IDT_tbl = &IDT_p[event_num];
@@ -57,6 +58,10 @@ int main() {
     port[i].owner = 0;
   }
 
+  for(i=0; i<MEM_PAGE_SIZE; i++){
+    mem_page[i].owner = 0;
+  }
+
   IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
   cons_printf("IDT located @ DRAM addr %x (%d).\n", IDT_p, IDT_p); // show location on Target PC
   IDTEntrySet(TIMER_EVENT, TimerEvent);
@@ -71,13 +76,14 @@ int main() {
   IDTEntrySet(PORTALLOC_EVENT, PortAllocEvent);
   IDTEntrySet(PORTWRITE_EVENT, PortWriteEvent);
   IDTEntrySet(PORTREAD_EVENT, PortReadEvent);
-  //phase6
   IDTEntrySet(FSFIND_EVENT, FSfindEvent);
   IDTEntrySet(FSOPEN_EVENT, FSopenEvent);
   IDTEntrySet(FSREAD_EVENT, FSreadEvent);
   IDTEntrySet(FSCLOSE_EVENT, FScloseEvent);
+  IDTEntrySet(FORK_EVENT, ForkEvent);
+  IDTEntrySet(WAIT_EVENT, WaitEvent);
+  IDTEntrySet(EXIT_EVENT, ExitEvent);
   
-  //phase 6
   for(fd_num = 0; fd_num<FD_NUM-1; fd_num++){
     fd_array[fd_num].owner = 0;
   }
@@ -86,7 +92,9 @@ int main() {
   bin_dir[1].size = root_dir[0].size;    // otherwise, they would be recursive
   www_dir[0].size = sizeof(www_dir);     // definitions which compiler rejects
   www_dir[1].size = root_dir[0].size;
+
   outportb(0x21, ~0x19); // set PIC mask for IRQ1, IRQ3 and IRQ4
+
   NewProcHandler(TermProc); // call NewProcHandler(Init) to create Init proc
   NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
   Scheduler(); // call scheduler to select current_pid (if needed)
@@ -133,7 +141,6 @@ void Kernel(TF_t *TF_p) {       // kernel code exec (at least 100 times/second)
     case PORTREAD_EVENT:
       PortReadHandler((char *)TF_p->eax, TF_p->ebx);
       break;
-    //phase 6
     case FSFIND_EVENT:
       FSfindHandler();
       break;
@@ -145,6 +152,15 @@ void Kernel(TF_t *TF_p) {       // kernel code exec (at least 100 times/second)
       break;
     case FSCLOSE_EVENT:
       FScloseHandler();
+      break;
+    case FORK_EVENT:
+      ForkHandler((char *)TF_p->eax, TF_p->ebx);
+      break;
+    case WAIT_EVENT:
+      WaitHandler(&TF_p->eax);
+      break;
+    case EXIT_EVENT:
+      ExitHandler(TF_p->eax);
       break;
     
     default:
