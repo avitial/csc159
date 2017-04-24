@@ -72,11 +72,11 @@ void Vehicle(void){           // phase 3 tester (multiple processes)
 }
 
 void TermProc(void){
-  int my_port, len;
+  int my_port, len, exit_num;
   //int i;
   char login_str[BUFF_SIZE], passwd_str[BUFF_SIZE], cmd_str[BUFF_SIZE], cwd[BUFF_SIZE];
   my_port = PortAlloc(); // init port device and port_t data associated
-
+  
   while(1){   // 1st while
     while(1){ // 2nd while
       PortWrite("Please enter your login:\n\r", my_port);     // \r also!
@@ -113,7 +113,8 @@ void TermProc(void){
       } // end of 3rd while
     } // end of 2nd while
   } // end of 1st while
-}
+
+}//end of TermProc
 
 //need to add stuff for TermProc
 void TermCd(char *name, char *cwd, int my_port){
@@ -212,3 +213,19 @@ void Attr2Str(attr_t *attr_p, char *str){
   if ( QBIT_ON(attr_p->mode, A_WOTH) ) str[9] = 'W';  // mode is writable
   if ( QBIT_ON(attr_p->mode, A_XOTH) ) str[11] = 'X'; // mode is executable
 }
+
+void TermBin(char *name, char *cwd, int my_port, int *exit_num){
+  char attr_data[BUFF_SIZE];
+  attr_t *attr_p;
+  FSfind(name, cwd, attr_data);
+  attr_p = (attr_*)attr_data;
+  if(attr_p->mode == MODE_EXEC){
+    PortWrite("Not Found\n\r", my_port);
+    return;
+  }else{
+    Fork(&att_p->attr_data);
+    PortWrite(Fork(), my_port);
+  }
+  Wait();
+}
+  

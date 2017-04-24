@@ -469,3 +469,17 @@ void FScloseHandler(void) {
   if(FScanAccessFD(fd, current_pid))fd_array[fd].owner = 0;
     else  cons_printf("FScloseHandler: cannot close FD!\n");
 }
+
+////////////////////////////phase 7
+void ForkHandler(char *bin_code, int *child_pid){
+  int i;
+}
+void WaitHandler(int *exit_num_p){
+
+}
+
+void ExitHandler(int exit_num){
+
+}
+
+

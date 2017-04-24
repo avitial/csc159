@@ -35,4 +35,9 @@ dir_t *FSfindNameSub(char *, dir_t *);
 void FSdir2attr(dir_t *, attr_t *);
 void FScloseHandler(void);
 
+//phase 7
+void ForkHandler(char *, int *);
+void WaitHandler(int *);
+void ExitHandler(int);
+
 #endif
