@@ -13,9 +13,9 @@
 #define PROC_STACK_SIZE 4096 // process runtime stack in bytes
 #define PORT_NUM 3        // max ports avail
 #define BUFF_SIZE 101     // size limit of buffer
-#define MEM_BASE 0xE00000    // memory pages start at 14M
-#define MEM_PAGE_NUM 100     // kernel maintains 100 memory pages
-#define MEM_PAGE_SIZE 4096   // a memory page has 4096 bytes
+#define MEM_BASE 0xE00000 // memory pages start at 14M
+#define MEM_PAGE_NUM 100  // kernel maintains 100 memory pages
+#define MEM_PAGE_SIZE 4096// a memory page has 4096 bytes
 
 // Trapframe to save the state of CPU registers /before entering
 // kernel code, and loaded back (in reverse) to resume process
@@ -79,5 +79,10 @@ typedef struct{
   read_q,
   loopback_q;
 } port_t;
+
+typedef struct{
+  int owner;      // owning PID the mp is allocated for
+  char *addr;     // byte location of a 4KB memory page
+} mem_page_t;
 
 #endif // __TYPES_H__

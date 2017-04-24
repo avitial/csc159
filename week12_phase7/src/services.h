@@ -12,9 +12,12 @@ void SysPrint(char *);
 int PortAlloc(void);
 void PortWrite(char *, int);
 void PortRead(char *, int);
-//phase 6
 void FSfind(char *, char *, char *);
 int FSopen(char *, char *);
 void FSread(int, char *);
 void FSclose(int);
+int Fork(char *);
+int Wait(void);
+void Exit(int);
+
 #endif
