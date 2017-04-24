@@ -13,6 +13,9 @@
 #define PROC_STACK_SIZE 4096 // process runtime stack in bytes
 #define PORT_NUM 3        // max ports avail
 #define BUFF_SIZE 101     // size limit of buffer
+#define MEM_BASE 0xE00000    // memory pages start at 14M
+#define MEM_PAGE_NUM 100     // kernel maintains 100 memory pages
+#define MEM_PAGE_SIZE 4096   // a memory page has 4096 bytes
 
 // Trapframe to save the state of CPU registers /before entering
 // kernel code, and loaded back (in reverse) to resume process
@@ -51,6 +54,7 @@ typedef struct {  // PCB describes proc image
    state_t state; // state of process
    int cpu_time;	// CPU runtime
    int wake_time;	// used to note when a process is supposed to be waken up from SLEEP state
+   int ppid;      //
    TF_t *TF_p;    // points to trapframe of process
 } pcb_t;
 

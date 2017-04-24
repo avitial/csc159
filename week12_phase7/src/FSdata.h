@@ -59,10 +59,11 @@ char hello_html_data[] = {
 extern dir_t root_dir[];                         // prototype it in advance
 
 dir_t bin_dir[] = {
-   {16, MODE_DIR, 0, ".", (char *)bin_dir},   // current dir
-   {17, MODE_DIR, 0, "..", (char *)root_dir}, // parent dir, forward declared
-   {0, 0, 0, NULL, NULL},                      // no entries in dir
-   {END_INODE, 0, 0, NULL, NULL}               // end of bin_dir[]
+  {16, MODE_DIR, 0, ".", (char *)bin_dir},   // current dir
+  {17, MODE_DIR, 0, "..", (char *)root_dir}, // parent dir, forward declared
+  { 18, MODE_EXEC, SLEEP3_SIZE, "sleep3", (char *)sleep3 },
+  {0, 0, 0, NULL, NULL},                      // no entries in dir
+  {END_INODE, 0, 0, NULL, NULL}               // end of bin_dir[]
 };
 
 dir_t www_dir[] = {
@@ -86,5 +87,10 @@ dir_t root_dir[] = {
 
 fd_t fd_array[FD_NUM];  // one file descriptor for every OPEN_OBJ call
 // *********************************************************************
+
+char sleep3[]= {
+  #include "bin-code/sleep3.txt" // this must be given as a separate line
+};
+#define SLEEP#_SIZE (sizeof(sleep3))
 
 #endif __FS_DATA_H__
