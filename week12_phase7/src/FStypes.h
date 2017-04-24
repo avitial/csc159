@@ -54,4 +54,3 @@ typedef struct {      // file descriptor type
 } fd_t;
 
 #endif // __FSTYPES_H__
-

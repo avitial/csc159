@@ -14,23 +14,23 @@ void NewProcHandler(func_ptr_t p){ // arg: where process code starts
 
   if((free_q.size == 0)){ // this may occur for testing
     cons_printf("Kernel Panic: no more PID left!\n");
-    breakpoint(); // breakpoint() into GDB
+    breakpoint();         // breakpoint() into GDB
   }
-  pid = DeQ(&free_q); // get 'pid' from free_q
+  pid = DeQ(&free_q);     // get 'pid' from free_q
   MyBzero((char *)&pcb[pid], sizeof(pcb_t));
   MyBzero((char *)&proc_stack[pid], PROC_STACK_SIZE); // use tool to clear the PCB (indexed by 'pid')
+  pcb[pid].state = READY;
+  EnQ(pid, &ready_q);
   pcb[pid].TF_p = (TF_t *)&proc_stack[pid][PROC_STACK_SIZE - sizeof(TF_t)]; // point TF_p to highest area in stack
 // then fill out the eip of the TF
-  pcb[pid].TF_p->eip = (int)p; // new process code
+  pcb[pid].TF_p->eip = (unsigned int)p; // new process code
   pcb[pid].TF_p->eflags = EF_DEFAULT_VALUE|EF_INTR; // EFL will enable intr!
   pcb[pid].TF_p->cs = get_cs(); // duplicate from current CPU
   pcb[pid].TF_p->ds = get_ds(); // duplicate from current CPU
   pcb[pid].TF_p->es = get_es(); // duplicate from current CPU
   pcb[pid].TF_p->fs = get_fs(); // duplicate from current CPU
   pcb[pid].TF_p->gs = get_gs(); // duplicate from current CPU
-  pcb[pid].cpu_time = 0; //pcb[pid].total_cpu_time = 0;
-  pcb[pid].state = READY;
-  EnQ(pid, &ready_q);
+  pcb[pid].cpu_time = 0;        //pcb[pid].total_cpu_time = 0;
 
   if(pid>9){
     ch_p[pid*80+40]=0xf00+ (pid/10+'0');
@@ -51,9 +51,9 @@ void TimerHandler(void){
   current_time++;
   pcb[current_pid].cpu_time++; // upcount cpu_time of the process (PID is current_pid)
 
-  for(i=1; i<Q_SIZE; i++){ // phase 2
+  for(i=1; i<Q_SIZE; i++){  // phase 2
     if((pcb[i].state == SLEEP) && (pcb[i].wake_time == current_time)){
-      EnQ(i, &ready_q); // append pid to ready_q
+      EnQ(i, &ready_q);     // append pid to ready_q
       pcb[i].state = READY; // update proc state
       ch_p[i*80+43] = 0xf00 +'r';
     }
@@ -61,9 +61,9 @@ void TimerHandler(void){
 
   if(pcb[current_pid].cpu_time == TIME_LIMIT){ // if its cpu_time reaches the preset OS time limit
     pcb[current_pid].state = READY; // update/downgrade its state
-    EnQ(current_pid, &ready_q); // move it to ready_q
+    EnQ(current_pid, &ready_q);     // move it to ready_q
     ch_p[current_pid*80+43] = 0xf00 +'r';
-    current_pid = 0; // no longer runs
+    current_pid = 0;    // no longer runs
   }
   outportb(0x20, 0x60); // Don't forget: notify PIC event-handling done
 }
@@ -77,6 +77,7 @@ void SleepHandler(int sleep_amount){
 
 void SemAllocHandler(int passes){
   int sid;
+
   for(sid=0; sid<PROC_NUM; sid++){
     if(sem[sid].owner == 0) break;
   }
@@ -106,13 +107,13 @@ void SemWaitHandler(int sid){
   }
 }
 
-
 void SemPostHandler(int sid){
   int free_pid = 0;
 
   if((sem[sid].wait_q.size == 0)){
     sem[sid].passes++;
     ch_p[48] = 0xf00 + sem[sid].passes + '0';
+    return;
   } else{
     free_pid = DeQ(&sem[sid].wait_q);
     EnQ(free_pid, &ready_q);
@@ -134,7 +135,7 @@ void SysPrintHandler(char *str){
   for(i=0; i<50; i++) asm("inb $0x80"); // needs some delay
   outportb(printer_control, 4 | 8 ); // 1<<2 is PC_INIT, 1<<3 PC_SLCTIN
   
-  while(*str) {
+  while(*str){
     outportb(printer_data, *str); // write char to printer data
     code = inportb(printer_control); // read printer control
     outportb(printer_control, code | 1); // 1<<0 is PC_STROBE
@@ -146,6 +147,7 @@ void SysPrintHandler(char *str){
       if(code == 0) break; // printer ACK'ed
       asm("inb $0x80"); // otherwise, wait 0.6 us, and loop
     } 
+
     if(i == LOOP*3) { // if 3 sec did pass (didn't ACK)
       cons_printf(">>> Printer timed out!\n");
       break; // abort printing
@@ -199,7 +201,7 @@ void PortHandler(){
       break;
     }
     
-    if(intr_type == IIR_TXRDY && port[port_num].write_ok == 1){
+    if(intr_type == IIR_TXRDY || port[port_num].write_ok == 1){
       PortWriteOne(port_num);
       break;
     }
@@ -240,8 +242,8 @@ void PortAllocHandler(int *eax){
 void PortWriteHandler(char one, int port_num){
   
   if(port[port_num].write_q.size == Q_SIZE){
-  cons_printf("Kernel Panic: terminal is not prompting (fast enough)?\n");
-  return;
+    cons_printf("Kernel Panic: terminal is not prompting (fast enough)?\n");
+    return;
   }
   EnQ(one, &port[port_num].write_q);//buffer one
   
@@ -259,172 +261,161 @@ void PortReadHandler(char *one, int port_num){
   *one = DeQ(&port[port_num].read_q);
 }
 
-////////////////////////////////phase 6
-void FSfindHandler(void) {
-   char *name, *data;
-   attr_t *attr_p;
-   dir_t *dir_p;
+void FSfindHandler(void){
+  char *name, *data;
+  attr_t *attr_p;
+  dir_t *dir_p;
 
-   name = (char *)pcb[current_pid].TF_p->eax;
-   data = (char *)pcb[current_pid].TF_p->ebx;
+  name = (char *)pcb[current_pid].TF_p->eax;
+  data = (char *)pcb[current_pid].TF_p->ebx;
+  dir_p = FSfindName(name);
 
-   dir_p = FSfindName(name);
+  if(! dir_p) {   // dir_p == 0, not found
+    data[0] = 0;  // null terminated, not found, return
+    return;
+  }
 
-   if(! dir_p) {      // dir_p == 0, not found
-      data[0] = 0;    // null terminated, not found, return
-      return;
-   }
+  attr_p = (attr_t *)data;
+  FSdir2attr(dir_p, attr_p); // copy what dir_p points to to where attr_p points to
 
-   attr_p = (attr_t *)data;
-   FSdir2attr(dir_p, attr_p); // copy what dir_p points to to where attr_p points to
-
-// should include filename (add 1 to length for null char)
-   MyMemcpy((char *)(attr_p + 1), dir_p->name, MyStrlen(dir_p->name) + 1);
+  // should include filename (add 1 to length for null char)
+  MyMemcpy((char *)(attr_p + 1), dir_p->name, MyStrlen(dir_p->name) + 1);
 }
 
 void FSopenHandler(void) {
-   char *name;
-   int fd;
-   dir_t *dir_p;
+  char *name;
+  int fd;
+  dir_t *dir_p;
 
-   name = (char *)pcb[current_pid].TF_p->eax;
+  name = (char *)pcb[current_pid].TF_p->eax;
+  fd = FSallocFD(current_pid);  // current_pid is owner of fd allocated
 
-   fd = FSallocFD(current_pid);  // current_pid is owner of fd allocated
+  if( fd == -1 ) {
+    cons_printf("FSopenHandler: no more File Descriptor!\n");
+    pcb[current_pid].TF_p->ebx = -1;
+    return;
+  }
 
-   if( fd == -1 ) {
-      cons_printf("FSopenHandler: no more File Descriptor!\n");
-      pcb[current_pid].TF_p->ebx = -1;
-      return;
-   }
-
-   dir_p = FSfindName(name);
-   if(! dir_p) {
-      cons_printf("FSopenHandler: name not found!\n");
-      pcb[current_pid].TF_p->ebx = -1;
-      return;
-   }
-
-   fd_array[fd].item = dir_p;        // dir_p is the name
-   pcb[current_pid].TF_p->ebx = fd;  // process gets this to future read
+  dir_p = FSfindName(name);
+  if(! dir_p) {
+    cons_printf("FSopenHandler: name not found!\n");
+    pcb[current_pid].TF_p->ebx = -1;
+    return;
+  }
+  fd_array[fd].item = dir_p;        // dir_p is the name
+  pcb[current_pid].TF_p->ebx = fd;  // process gets this to future read
 }
 
 // Copy bytes from file into user's buffer. Returns actual count of bytes
 // transferred. Read from fd_array[fd].offset (initially given 0) for
 // buff_size in bytes, and record the offset. may reach EOF though...
-void FSreadHandler(void) {
-   int fd, result, remaining;
-   char *read_data;
-   dir_t *lp_dir;
+void FSreadHandler(void){
+  int fd, result, remaining;
+  char *read_data;
+  dir_t *lp_dir;
 
-   fd = pcb[current_pid].TF_p->eax;
-   read_data = (char *)pcb[current_pid].TF_p->ebx;
+  fd = pcb[current_pid].TF_p->eax;
+  read_data = (char *)pcb[current_pid].TF_p->ebx;
 
-   if(! FScanAccessFD(fd, current_pid)) {
-      cons_printf("FSreadHandler: cannot read from FD!\n");
+  if(! FScanAccessFD(fd, current_pid)) {
+    cons_printf("FSreadHandler: cannot read from FD!\n");
+    read_data[0] = 0;  // null-terminate it
+    return;
+  }
+  lp_dir = fd_array[fd].item;
+
+  if(A_ISDIR(lp_dir->mode)){  // it's a dir
+    // if reading directory, return attr_t structure followed by obj name.
+    // a chunk returned per read. `offset' is index into root_dir[] table.
+    dir_t *this_dir = lp_dir;
+    attr_t *attr_p = (attr_t *)read_data;
+    dir_t *dir_p;
+
+    if(BUFF_SIZE < sizeof( *attr_p )+2){
+      cons_printf("FSreadHandler: read buffer size too small!\n");
       read_data[0] = 0;  // null-terminate it
       return;
-   }
+    }
 
-   lp_dir = fd_array[fd].item;
+    // use current dir, advance to next dir for next time when called
+    do{
+      dir_p = ((dir_t *)this_dir->data);
+      dir_p += fd_array[fd].offset ;
 
-   if( A_ISDIR(lp_dir->mode ) ) {  // it's a dir
-// if reading directory, return attr_t structure followed by obj name.
-// a chunk returned per read. `offset' is index into root_dir[] table.
-      dir_t *this_dir = lp_dir;
-      attr_t *attr_p = (attr_t *)read_data;
-      dir_t *dir_p;
-
-      if( BUFF_SIZE < sizeof( *attr_p ) + 2) {
-         cons_printf("FSreadHandler: read buffer size too small!\n");
-         read_data[0] = 0;  // null-terminate it
-         return;
+      if( dir_p->inode == END_INODE ) {
+        read_data[0] = 0;  // EOF, null-terminate it
+        return;
       }
+      fd_array[fd].offset++;   // advance
+    } while(dir_p->name == 0);
 
-// use current dir, advance to next dir for next time when called
-      do {
-         dir_p = ((dir_t *)this_dir->data);
-         dir_p += fd_array[fd].offset ;
+    // MyBzero() fills buff with 0's, necessary to clean buff
+    // since FSdir2attr may not completely overwrite whole buff...
+    MyBzero(read_data, BUFF_SIZE);
+    FSdir2attr(dir_p, attr_p);
+    // copy obj name after attr_t, add 1 to length for null
+    MyMemcpy((char *)( attr_p + 1 ), dir_p->name, MyStrlen( dir_p->name ) + 1);
 
-         if( dir_p->inode == END_INODE ) {
-            read_data[0] = 0;  // EOF, null-terminate it
-            return;
-         }
-         fd_array[fd].offset++;   // advance
-      } while(dir_p->name == 0);
-
-// MyBzero() fills buff with 0's, necessary to clean buff
-// since FSdir2attr may not completely overwrite whole buff...
-      MyBzero(read_data, BUFF_SIZE);
-      FSdir2attr(dir_p, attr_p);
-
-// copy obj name after attr_t, add 1 to length for null
-      MyMemcpy((char *)( attr_p + 1 ), dir_p->name, MyStrlen( dir_p->name ) + 1);
-
-   } else {  // a file, not dir
-// compute max # of bytes can transfer then MyMemcpy()
+    } else {  // a file, not dir
+      // compute max # of bytes can transfer then MyMemcpy()
       remaining = lp_dir->size - fd_array[fd].offset;
 
       if( remaining == 0 ) {
-         read_data[0] = 0;  // EOF, null-terminate it
-         return;
+        read_data[0] = 0;  // EOF, null-terminate it
+        return;
       }
-
-      MyBzero(read_data, BUFF_SIZE);  // null termination for any part of file read
-
+      MyBzero(read_data, BUFF_SIZE);        // null termination for any part of file read
       result = remaining<100?remaining:100; // -1 saving is for last null
-
       MyMemcpy(read_data, &lp_dir->data[ fd_array[ fd ].offset ], result);
-
-      fd_array[fd].offset += result;  // advance our "current" ptr
+      fd_array[fd].offset += result;        // advance our "current" ptr
    }
 }
 
 // check ownership of fd and the fd is valid within range
 int FScanAccessFD( int fd, int owner ) {
-   if( fd_array[fd].owner == owner) return 1;
-   return 0;     // not good
+  if( fd_array[fd].owner == owner) return 1;
+  return 0;     // not good
 }
 
 // Search our (fixed size) table of file descriptors. returns fd_array[] index
 // if an unused entry is found, else -1 if all in use. if avail, then all
 // fields are initialized.
-int FSallocFD( int owner ) {
-   int i;
+int FSallocFD(int owner){
+  int i;
 
-   for(i=0; i<FD_NUM; i++) {
-      if( 0 == fd_array[i].owner ) {
-         fd_array[i].owner = owner;
-         fd_array[i].offset = 0;
-         fd_array[i].item = 0;     // NULL is (void *)0, spede/stdlib.h
+  for(i=0; i<FD_NUM; i++) {
+    if( 0 == fd_array[i].owner ) {
+    fd_array[i].owner = owner;
+    fd_array[i].offset = 0;
+    fd_array[i].item = 0; // NULL is (void *)0, spede/stdlib.h
 
-         return i;
-      }
-   }
-
-   return -1;   // no free file descriptors
+    return i;
+    }
+  }
+  return -1;  // no free file descriptors
 }
 
-dir_t *FSfindName( char *name ) {
-   dir_t *starting;
+dir_t *FSfindName(char *name){
+  dir_t *starting;
 
-// assume every path relative to root directory. Eventually, the user
-// context will contain a "current working directory" and we can possibly
-// start our search there
-   if( name[0] == '/' ) {
-      starting = root_dir;
+  // assume every path relative to root directory. Eventually, the user
+  // context will contain a "current working directory" and we can possibly
+  // start our search there
+  if(name[0] == '/'){
+    starting = root_dir;
 
-      while( name[0] == '/' ) name++;
+    while(name[0] == '/') name++;
 
-      if( name[0] == 0 ) return root_dir; // client asked for "/"
-   } else {
-// path is relative, so start off at CWD for this process
-// but we don't have env var CWD, so just use root as well
-      starting = root_dir; // should be what env var CWD is
-   }
+    if(name[0] == 0) return root_dir; // client asked for "/"
+  } else{
+  // path is relative, so start off at CWD for this process
+  // but we don't have env var CWD, so just use root as well
+    starting = root_dir; // should be what env var CWD is
+  }
 
-   if( name[0] == 0 ) return 0;
+  if(name[0] == 0) return 0;
 
-   return FSfindNameSub(name, starting);
+  return FSfindNameSub(name, starting);
 }
 
 // go searching through a single dir for a name match. use MyStrcmp()
@@ -432,57 +423,49 @@ dir_t *FSfindName( char *name ) {
 // if more after '/' and we matched a dir, recurse down there
 // RETURN: ptr to dir entry if found, else 0
 // once any dir matched, don't return name which dir was matched
-dir_t *FSfindNameSub( char *name, dir_t *this_dir ) {
-   dir_t *dir_p = this_dir;
-   int len = MyStrlen(name);
-   char *p;
+dir_t *FSfindNameSub(char *name, dir_t *this_dir){
+  dir_t *dir_p = this_dir;
+  int len = MyStrlen(name);
+  char *p;
 
-// if name is '.../...,' we decend into subdir
-   if( ( p = strchr( name, '/' ) ) != 0) len = p - name;  // p = to where / is (high mem)
+  // if name is '.../...,' we decend into subdir
+  if((p = strchr(name, '/')) != 0) len = p - name;  // p = to where / is (high mem)
 
-   for( ; dir_p->name; dir_p++ ) {
-//      if((unsigned int)dir_p->name > 0xdfffff) return 0; // tmp bug-fix patch
-
-      if( 1 == MyStrcmp( name, dir_p->name, len ) ) {
-         if( p && p[1] != 0 ) { // not ending with name, it's "name/..."
-// user is trying for a sub-dir. if there are more components, make sure this
-// is a dir. if name ends with "/" we don't check. thus "hello.html/" is legal
-            while( *p == '/' ) {
-               p++;                           // skipping trailing /'s in name
-               if( '\0' == *p ) return dir_p; // name "xxx/////" is actually legal
-            }
-
-// altho name given is "xxx/yyy," xxx is not a directory
-            if(dir_p->mode != MODE_DIR) return 0; // bug-fix patch for "cat h/in"
-
-            name = p;
-            return FSfindNameSub(name, (dir_t *)dir_p->data);
-         }
-         return dir_p;
+  for(; dir_p->name; dir_p++) {
+    //  if((unsigned int)dir_p->name > 0xdfffff) return 0; // tmp bug-fix patch
+    if(1 == MyStrcmp(name, dir_p->name, len)){
+      if(p && p[1] != 0){ // not ending with name, it's "name/..."
+        // user is trying for a sub-dir. if there are more components, make sure this
+        // is a dir. if name ends with "/" we don't check. thus "hello.html/" is legal
+        while(*p == '/'){
+          p++;                                // skipping trailing /'s in name
+          if( '\0' == *p ) return dir_p;      // name "xxx/////" is actually legal
+        }
+        // altho name given is "xxx/yyy," xxx is not a directory
+        if(dir_p->mode != MODE_DIR) return 0; // bug-fix patch for "cat h/in"
+        name = p;
+        return FSfindNameSub(name, (dir_t *)dir_p->data);
       }
-   }
-
-   return 0;   // no match found
+      return dir_p;
+    }
+  }
+  return 0; // no match found
 }
 
 // copy what dir_p points to (dir_t) to what attr_p points to (attr_t)
 void FSdir2attr( dir_t *dir_p, attr_t *attr_p ) {
-   attr_p->dev = current_pid;            // current_pid manages this i-node
-
-   attr_p->inode = dir_p->inode;
-   attr_p->mode = dir_p->mode;
-   attr_p->nlink = ( A_ISDIR( attr_p->mode ) ) + 1;
-   attr_p->size = dir_p->size;
-   attr_p->data = dir_p->data;
+  attr_p->dev = current_pid;   // current_pid manages this i-node
+  attr_p->inode = dir_p->inode;
+  attr_p->mode = dir_p->mode;
+  attr_p->nlink = ( A_ISDIR( attr_p->mode ) ) + 1;
+  attr_p->size = dir_p->size;
+  attr_p->data = dir_p->data;
 }
 
 void FScloseHandler(void) {
-   int fd;
+  int fd;
+  fd = pcb[current_pid].TF_p->eax;
 
-   fd = pcb[current_pid].TF_p->eax;
-
-   if (FScanAccessFD(fd, current_pid))fd_array[fd].owner = 0;
-   else  cons_printf("FScloseHandler: cannot close FD!\n");
+  if(FScanAccessFD(fd, current_pid))fd_array[fd].owner = 0;
+    else  cons_printf("FScloseHandler: cannot close FD!\n");
 }
-
-

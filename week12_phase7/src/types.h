@@ -5,14 +5,14 @@
 
 #include "FStypes.h"
 
-#define LOOP 1666666         // handly loop limit exec asm("inb $0x80");
-#define FAST_LOOP 166666     // handly loop faster than asm inb$0x80
-#define TIME_LIMIT 10       // max timer count, then rotate process
-#define PROC_NUM 20          // max number of processes
-#define Q_SIZE 20            // queuing capacity
+#define LOOP 1666666      // handly loop limit exec asm("inb $0x80");
+#define FAST_LOOP 166666  // handly loop faster than asm inb$0x80
+#define TIME_LIMIT 10     // max timer count, then rotate process
+#define PROC_NUM 20       // max number of processes
+#define Q_SIZE 20         // queuing capacity
 #define PROC_STACK_SIZE 4096 // process runtime stack in bytes
-#define PORT_NUM 3
-#define BUFF_SIZE 101
+#define PORT_NUM 3        // max ports avail
+#define BUFF_SIZE 101     // size limit of buffer
 
 // Trapframe to save the state of CPU registers /before entering
 // kernel code, and loaded back (in reverse) to resume process
@@ -37,10 +37,10 @@ typedef struct {
  
 	unsigned int	event_num; // indicate what event occurred
  
-	unsigned int	eip; // processor state frame below
+	unsigned int	eip;  // processor state frame below
 	unsigned int	cs; 
 	unsigned int	eflags; 
-} TF_t;           // trapframe type
+} TF_t;               // trapframe type
  
 typedef void (*func_ptr_t)(); // void-return function pointer type
 

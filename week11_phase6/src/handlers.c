@@ -21,7 +21,6 @@ void NewProcHandler(func_ptr_t p){ // arg: where process code starts
   MyBzero((char *)&proc_stack[pid], PROC_STACK_SIZE); // use tool to clear the PCB (indexed by 'pid')
   pcb[pid].state = READY;
   EnQ(pid, &ready_q);
-
   pcb[pid].TF_p = (TF_t *)&proc_stack[pid][PROC_STACK_SIZE - sizeof(TF_t)]; // point TF_p to highest area in stack
 // then fill out the eip of the TF
   pcb[pid].TF_p->eip = (unsigned int)p; // new process code
@@ -78,6 +77,7 @@ void SleepHandler(int sleep_amount){
 
 void SemAllocHandler(int passes){
   int sid;
+
   for(sid=0; sid<PROC_NUM; sid++){
     if(sem[sid].owner == 0) break;
   }
@@ -107,7 +107,6 @@ void SemWaitHandler(int sid){
   }
 }
 
-
 void SemPostHandler(int sid){
   int free_pid = 0;
 
@@ -136,7 +135,7 @@ void SysPrintHandler(char *str){
   for(i=0; i<50; i++) asm("inb $0x80"); // needs some delay
   outportb(printer_control, 4 | 8 ); // 1<<2 is PC_INIT, 1<<3 PC_SLCTIN
   
-  while(*str) {
+  while(*str){
     outportb(printer_data, *str); // write char to printer data
     code = inportb(printer_control); // read printer control
     outportb(printer_control, code | 1); // 1<<0 is PC_STROBE
@@ -148,6 +147,7 @@ void SysPrintHandler(char *str){
       if(code == 0) break; // printer ACK'ed
       asm("inb $0x80"); // otherwise, wait 0.6 us, and loop
     } 
+
     if(i == LOOP*3) { // if 3 sec did pass (didn't ACK)
       cons_printf(">>> Printer timed out!\n");
       break; // abort printing
@@ -242,8 +242,8 @@ void PortAllocHandler(int *eax){
 void PortWriteHandler(char one, int port_num){
   
   if(port[port_num].write_q.size == Q_SIZE){
-  cons_printf("Kernel Panic: terminal is not prompting (fast enough)?\n");
-  return;
+    cons_printf("Kernel Panic: terminal is not prompting (fast enough)?\n");
+    return;
   }
   EnQ(one, &port[port_num].write_q);//buffer one
   
@@ -268,7 +268,6 @@ void FSfindHandler(void){
 
   name = (char *)pcb[current_pid].TF_p->eax;
   data = (char *)pcb[current_pid].TF_p->ebx;
-
   dir_p = FSfindName(name);
 
   if(! dir_p) {   // dir_p == 0, not found
@@ -303,7 +302,6 @@ void FSopenHandler(void) {
     pcb[current_pid].TF_p->ebx = -1;
     return;
   }
-
   fd_array[fd].item = dir_p;        // dir_p is the name
   pcb[current_pid].TF_p->ebx = fd;  // process gets this to future read
 }

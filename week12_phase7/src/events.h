@@ -47,7 +47,6 @@ extern void PortEvent();      // coded in events.S, code for Device Driver: Inte
 extern void PortAllocEvent(); // coded in events.S, code for Device Driver: Interrupt Driven
 extern void PortWriteEvent(); // coded in events.S, code for Device Driver: Interrupt Driven
 extern void PortReadEvent();  // coded in events.S, code for Device Driver: Interrupt Driven
-//phase 6
 extern void FSfindEvent(void);// coded in events.S, code for File Services
 extern void FSopenEvent(void);// coded in events.S, code for File Services
 extern void FSreadEvent(void);// coded in events.S, code for File Services
