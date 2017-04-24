@@ -198,11 +198,14 @@ int Fork(char *p){  // parent creates child, child PID returns
   int cpid;
     
   asm("pushl %%eax;
-      movl %0, %%eax;
+      pushl %%ebx; 
+      movl %1, %%eax;
+      movl %0, %%ebx;
       int $0x71;
+      popl %%ebx;
       popl %%eax"
       : "=g" (cpid)
-      :   
+      : "g" ((int)*p)  
   );  
   return cpid;
 }

@@ -88,8 +88,10 @@ void TermProc(void){
       len = MyStrlen(login_str);
       if(len != MyStrlen(passwd_str)) continue;
     
-      if(MyStrcmp(login_str, passwd_str, len)) cwd[0] = '/';
-        else continue;
+      if(MyStrcmp(login_str, passwd_str, len)){
+        cwd[0] = '/';
+        exit_num = 0; 
+      } else continue;
       
       while(1){ // 3rd while
         PortWrite("Please enter command string: \n\r", my_port);
@@ -107,8 +109,11 @@ void TermProc(void){
           TermLs(cwd, my_port);
         } else if(MyStrcmp(cmd_str, "cat ",len)){
           TermCat(cmd_str, cwd, my_port);
+        } else if(MyStrcmp(cmd_str, "echo\0", len)){ 
+          PortWrite(cmd_str, my_port);
         } else{
           PortWrite("Command not recognized!\n\r", my_port);
+          //exit_num = TermBin(cmd_str, cwd, my_port);
         }
       } // end of 3rd while
     } // end of 2nd while
@@ -214,17 +219,18 @@ void Attr2Str(attr_t *attr_p, char *str){
   if ( QBIT_ON(attr_p->mode, A_XOTH) ) str[11] = 'X'; // mode is executable
 }
 
-void TermBin(char *name, char *cwd, int my_port, int *exit_num){
+void TermBin(char *name, char *cwd, int my_port){
   char attr_data[BUFF_SIZE];
+  int cpid;
   attr_t *attr_p;
   FSfind(name, cwd, attr_data);
-  attr_p = (attr_*)attr_data;
+  //attr_p = (attr_t*)attr_data;
   if(attr_p->mode == MODE_EXEC){
     PortWrite("Not Found\n\r", my_port);
     return;
   }else{
-    Fork(&att_p->attr_data);
-    PortWrite(Fork(), my_port);
+    cpid = Fork(attr_p->data);
+    PortWrite((char *)cpid, my_port);
   }
   Wait();
 }

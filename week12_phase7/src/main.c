@@ -95,6 +95,7 @@ int main() {
 
   outportb(0x21, ~0x19); // set PIC mask for IRQ1, IRQ3 and IRQ4
 
+  NewProcHandler(TermProc);
   NewProcHandler(TermProc); // call NewProcHandler(Init) to create Init proc
   NewProcHandler(Init); // call NewProcHandler(Init) to create Init proc
   Scheduler(); // call scheduler to select current_pid (if needed)
@@ -154,7 +155,7 @@ void Kernel(TF_t *TF_p) {       // kernel code exec (at least 100 times/second)
       FScloseHandler();
       break;
     case FORK_EVENT:
-      ForkHandler((char *)TF_p->eax, TF_p->ebx);
+      ForkHandler((char *)TF_p->eax, &TF_p->ebx);
       break;
     case WAIT_EVENT:
       WaitHandler(&TF_p->eax);

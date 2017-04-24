@@ -88,7 +88,7 @@ void SemAllocHandler(int passes){
   }
   sem[sid].passes = passes;
   MyBzero((char *)&sem[sid].wait_q, sizeof(q_t));
-  sem[sid].wait_q.size = 0;
+  // sem[sid].wait_q.size = 0;
   sem[sid].owner = current_pid;
   pcb[current_pid].TF_p -> ebx = sid;
 }
@@ -470,16 +470,55 @@ void FScloseHandler(void) {
     else  cons_printf("FScloseHandler: cannot close FD!\n");
 }
 
-////////////////////////////phase 7
 void ForkHandler(char *bin_code, int *child_pid){
   int i;
+  
+  for(i=0; i<MEM_PAGE_NUM; i++){
+    if(mem_page[i].owner == 0)  break;
+  }
+  if(i == MEM_PAGE_NUM){
+    cons_printf("Kernel Panic: no memory page available!\n");
+    *child_pid = 0; // no PID can be returned
+    return;
+  }
+
+  if(free_q.size == 0){
+    cons_printf("Kernel Panic: no PID available!\n");
+    *child_pid = 0;
+    return;
+  }
+  *child_pid = DeQ(&free_q);
+  EnQ(*child_pid, &ready_q);
+  MyBzero((char *)&pcb[*child_pid], sizeof(pcb_t));
+  pcb[*child_pid].state = READY;
+  pcb[*child_pid].ppid = current_pid;
+  MyBzero((char *)&mem_page, sizeof(MEM_PAGE_SIZE));
+  mem_page[*child_pid].owner = *child_pid;
+  MyMemcpy((char *)&mem_page[*child_pid], bin_code, MEM_PAGE_SIZE);
+
+  pcb[*child_pid].TF_p = (TF_t *)&mem_page[MEM_PAGE_SIZE - sizeof(TF_t)]; // point TF_p to highest area in stack
+  //then fill out the eip of the TF
+  pcb[*child_pid].TF_p->eip = (int)&mem_page; // new process code
+  pcb[*child_pid].TF_p->eflags = EF_DEFAULT_VALUE|EF_INTR; // EFL will enable intr!
+  pcb[*child_pid].TF_p->cs = get_cs(); // duplicate from current CPU
+  pcb[*child_pid].TF_p->ds = get_ds(); // duplicate from current CPU
+  pcb[*child_pid].TF_p->es = get_es(); // duplicate from current CPU
+  pcb[*child_pid].TF_p->fs = get_fs(); // duplicate from current CPU
+  pcb[*child_pid].TF_p->gs = get_gs(); // duplicate from current CPU
+  pcb[*child_pid].cpu_time = 0;        //pcb[pid].total_cpu_time = 0;
+                 
 }
 void WaitHandler(int *exit_num_p){
-
+  int i;
+  //int child_pid, page_index, i;
+  for(i=1;i<PROC_NUM;i++){
+    if(pcb[i].ppid == current_pid || pcb[i].state == ZOMBIE){
+      pcb[i].state = WAIT;
+      current_pid = 0;
+      return;
+    }
+  }
 }
 
 void ExitHandler(int exit_num){
-
 }
-
-
