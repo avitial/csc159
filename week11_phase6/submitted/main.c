@@ -1,6 +1,3 @@
-// main.c, 159
-// Team Name: GidOS (Members: Esparza, Eloisa and AvitiaMontelongo, Luis)
-
 #include "spede.h"                          // given SPEDE stuff
 #include "types.h"                          // data types
 #include "handlers.h"                       // handler code
@@ -81,10 +78,10 @@ int main() {
   for(fd_num = 0; fd_num<FD_NUM-1; fd_num++){
     fd_array[fd_num].owner = 0;
   }
-  root_dir[0].size = sizeof(root_dir);  //can only be assigned during runtime
-  bin_dir[0].size = sizeof(bin_dir);    // even tho they're compiler-time sizes
-  bin_dir[1].size = root_dir[0].size;   // otherwise, they would be recursive
-  www_dir[0].size = sizeof(www_dir);    // definitions which compiler rejects
+  root_dir[0].size = sizeof(root_dir);   //can only be assigned during runtime
+  bin_dir[0].size = sizeof(bin_dir);     // even tho they're compiler-time sizes
+  bin_dir[1].size = root_dir[0].size;    // otherwise, they would be recursive
+  www_dir[0].size = sizeof(www_dir);     // definitions which compiler rejects
   www_dir[1].size = root_dir[0].size;
   outportb(0x21, ~0x19);    // set PIC mask for IRQ1, IRQ3 and IRQ4
   NewProcHandler(TermProc); // call NewProcHandler(TermProc) to create 1st Term proc
