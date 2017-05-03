@@ -1,3 +1,6 @@
+// main.c, 159
+// Team Name: GidOS (Members: Esparza, Eloisa and AvitiaMontelongo, Luis)
+
 #include "spede.h"                          // given SPEDE stuff
 #include "types.h"                          // data types
 #include "handlers.h"                       // handler code

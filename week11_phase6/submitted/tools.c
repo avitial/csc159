@@ -1,4 +1,6 @@
-nclude "spede.h"
+// tools.c, 159
+
+#include "spede.h"
 #include "types.h"
 #include "data.h"
 

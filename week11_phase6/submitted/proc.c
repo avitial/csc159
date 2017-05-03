@@ -1,4 +1,9 @@
-nclude "services.h"
+// proc.c, 159
+// all processes are coded here
+// processes do not use kernel space (data.h) or code (handlers, tools, etc.)
+// all must be done thru system service calls
+
+#include "services.h"
 #include "spede.h"      // cons_xxx below needs
 #include "data.h"       // current_pid needed below
 #include "proc.h"       // prototypes of processes
