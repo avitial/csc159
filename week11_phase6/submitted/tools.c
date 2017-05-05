@@ -58,7 +58,7 @@ void MyStrcat(char *dst, char *addendum){
     str_len++;
     j++;
   }
-  dst[str_len] = '\0';
+  dst[add_len] = '\0';
 }
 
 int MyStrcmp(char *p, char *q, int len){ //two ways to do it

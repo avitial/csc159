@@ -84,22 +84,26 @@ void TermProc(void){
       PortWrite("Please enter your password: ", my_port);  // \r also!
       PortRead(passwd_str, my_port);
       
-      if(login_str == 0) continue;
+      if(MyStrlen(login_str) == 0 || login_str[0] == '\n') continue;
       len = MyStrlen(login_str);
       if(len != MyStrlen(passwd_str)){
         PortWrite("Invalid password length, please try again.\n\r", my_port);	
 	continue;
       }
       i = 0;
-      if(login_str[i]!=passwd_str[(len-1)-i]){ continue;
-	} else{ 
-	i++;
-        }
-      cwd[0] = '/';
+      if(login_str[i]!=passwd_str[(len-1)-i]){
+        PortWrite("Invalid password, please try again.\n\r", my_port);
+	continue; 
+      } else{
+          i++;
+      }
+      MyStrcpy(cwd, "/");
+      //cwd[0] = '/';
+      //MyBzero((char *)&cwd[1], sizeof(cwd)-1);
       break;
     } // end of 2nd while 
     while(1){ // 3rd while
-      PortWrite("Please enter command string: ", my_port);
+      PortWrite("Please enter command string (pwd, ls, cd, cat, exit): ", my_port);
       PortRead(cmd_str, my_port);
 
       if(MyStrlen(cmd_str)==0) continue;
@@ -109,12 +113,13 @@ void TermProc(void){
 
       if(MyStrcmp(cmd_str, "pwd\0",len)){
         PortWrite(cwd, my_port);
-      } else if (MyStrcmp(cmd_str, "cd ",len)){
-        TermCd(cmd_str, cwd, my_port);
+	PortWrite("\n\r", my_port);
+      } else if (MyStrcmp(cmd_str, "cd ", 3)){
+        TermCd(&cmd_str[3], cwd, my_port);
       } else if(MyStrcmp(cmd_str, "ls\0",len)){
         TermLs(cwd, my_port);
-      } else if(MyStrcmp(cmd_str, "cat ",len)){
-        TermCat(cmd_str, cwd, my_port);
+      } else if(MyStrcmp(cmd_str, "cat ", 4)){
+        TermCat(&cmd_str[4], cwd, my_port);
       } else{
         PortWrite("Command not recognized!\n\r", my_port);
       }
@@ -130,22 +135,25 @@ void TermCd(char *name, char *cwd, int my_port){
   if(str_len == 0) return;
   if(MyStrcmp(name, ".\0", str_len)) return; // current directory, no changes
   if(MyStrcmp(name, "/\0", str_len) || MyStrcmp(name, "..\0", str_len)){
-    cwd[0] = '/';
+    //cwd[0] = '/';
+    MyStrcpy(cwd, "/");
+    //MyBzero((char *)&cwd[1], sizeof(cwd)-1);
     return;
   }
   FSfind(name, cwd, attr_data);
 
   if(MyStrlen(attr_data) == 0){
-    PortWrite("Directory not found\n\r", my_port);
+    PortWrite(attr_data, my_port);
+    PortWrite("Directory not found!\n\r", my_port);
     return;
   }
   attr_p = (attr_t*)attr_data;
   
   if(attr_p->mode == MODE_FILE){
-   PortWrite("Cannot cd a file\n\r", my_port);
+   PortWrite("Cannot cd a file!\n\r", my_port);
    return;
   }
-  MyStrcpy(cwd, name);
+  MyStrcpy(&cwd[1], name);
 }
 
 void TermCat(char *name, char *cwd, int my_port){
@@ -156,13 +164,13 @@ void TermCat(char *name, char *cwd, int my_port){
   FSfind(name, cwd, attr_data);
   
   if(MyStrlen(attr_data) == 0){
-    PortWrite("Not found\n\r", my_port);
+    PortWrite("Not found!\n\r", my_port);
     return;
   }
   attr_p = (attr_t *)attr_data; 
   
   if(attr_p->mode == MODE_DIR){
-      PortWrite("Not a directory\n\r", my_port);
+      PortWrite("Cannot cat a directory!\n\r", my_port);
       return;
   }
   my_fd = FSopen(name, cwd);

@@ -139,14 +139,16 @@ void FSfind(char *name, char *cwd, char *data){ //find CWD/name, return attrdata
   
   MyStrcpy(tmp, cwd);
   MyStrcat(tmp, name);
+  PortWrite("tmp is ", 0);
+  PortWrite(tmp, 0);
   asm("pushl %%eax;
        pushl %%ebx;
        movl %0, %%eax;
        movl %1, %%ebx;
        int $0x6D;
-       popl %%eax;
-       popl %%ebx"
-       :
+       popl %%ebx;
+       popl %%eax"
+       : 
        :"g" ((int)tmp), "g" ((int)data)   //might be wrong
   );
 }
@@ -166,7 +168,7 @@ int FSopen(char *name, char *cwd){ //alloc FD to open CWD/name
        popl %%ebx;
        popl %%eax"
        : "=g" (fd)
-       : "g" ((int)tmp)
+       : "g" ((int *)tmp)
   );
   return fd;
 }
