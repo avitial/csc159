@@ -214,7 +214,7 @@ int Wait(void){          // parent process waits exit_num from exiting child
 
 	asm("pushl %%eax;
 		int $0x72;
-		movl %%eax, % 0;
+		movl %%eax, %0;
 		popl %%eax"
 		: "=g" (exit_num)
 		:
@@ -224,7 +224,7 @@ int Wait(void){          // parent process waits exit_num from exiting child
 
 void Exit(int exit_num){ // process exits, send exit_num to parent
 	asm("pushl %%eax;
-		movl % 0, %%eax;
+		movl %0, %%eax;
 		int $0x73;
 		popl %%eax"
 		:
