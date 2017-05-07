@@ -481,7 +481,7 @@ void ForkHandler(char *bin_code, int *child_pid) {
 
 	if (free_q.size == 0){ // this may occur for testing
 		cons_printf("Kernel Panic: no PID available!\n");
-		*child_pid = 0  // no PID can be returned
+		*child_pid = 0;  // no PID can be returned
 		return;
 	}
 	*child_pid = DeQ(&free_q);     // get 'pid' from free_q
