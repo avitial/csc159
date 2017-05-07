@@ -474,7 +474,7 @@ void ForkHandler(char *bin_code, int *child_pid) {
 	}
 	
 	if (i == MEM_PAGE_NUM){
-		cons_printf("Kernel Panic: no memory page available!\n")
+		cons_printf("Kernel Panic: no memory page available!\n");
 		*child_pid = 0;
 		return;
 	}
@@ -485,12 +485,12 @@ void ForkHandler(char *bin_code, int *child_pid) {
 		return;
 	}
 	*child_pid = DeQ(&free_q);     // get 'pid' from free_q
-	MyBzero((char *)&pcb[(int)&child_id], sizeof(pcb_t));
-	pcb[(int)&child_id].state = READY;
-	pcb[(int)&child_id].ppid = current_pid;
+	MyBzero((char *)&pcb[(int)&child_pid], sizeof(pcb_t));
+	pcb[(int)&child_pid].state = READY;
+	pcb[(int)&child_pid].ppid = current_pid;
 	MyBzero((char *)&mem_page[(int)&child_id].addr, sizeof(MEM_PAGE_SIZE)); // clear memory page
-	mem_page[&child_id].owner = pcb[(int)&child_pid].ppid;
-	MyMemcpy((char *)&mem_page[(int)&child_id], bin_code, MEM_PAGE_SIZE);
+	mem_page[&child_pid].owner = pcb[(int)&child_pid].ppid;
+	MyMemcpy((char *)&mem_page[(int)&child_pid], bin_code, MEM_PAGE_SIZE);
 
 	pcb[(int)&child_pid].TF_p = (TF_t *)&mem_page[(int)&child_pid + (MEM_PAGE_SIZE - sizeof(TF_t))]; // set trapframe ptr in PCB to near the end of the memory page (leave TF space)
 	// then fill out the eip of the TF
