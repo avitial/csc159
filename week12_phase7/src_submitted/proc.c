@@ -224,7 +224,7 @@ void TermLs(char *cwd, int my_port){
 }
 
 void TermBin(char *name, char *cwd, int my_port, int *exit_num){
-	char ls_str[BUFF_SIZE], attr_data[BUFF_SIZE];
+	char attr_data[BUFF_SIZE];
 	attr_t *attr_p;
 	int cpid;
 
