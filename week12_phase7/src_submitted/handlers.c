@@ -489,7 +489,7 @@ void ForkHandler(char *bin_code, int *child_pid) {
 	pcb[(int)&child_pid].state = READY;
 	pcb[(int)&child_pid].ppid = current_pid;
 	MyBzero((char *)&mem_page[(int)&child_pid].addr, sizeof(MEM_PAGE_SIZE)); // clear memory page
-	mem_page[&child_pid].owner = pcb[(int)&child_pid].ppid;
+	mem_page[(int)&child_pid].owner = pcb[(int)&child_pid].ppid;
 	MyMemcpy((char *)&mem_page[(int)&child_pid], bin_code, MEM_PAGE_SIZE);
 
 	pcb[(int)&child_pid].TF_p = (TF_t *)&mem_page[(int)&child_pid + (MEM_PAGE_SIZE - sizeof(TF_t))]; // set trapframe ptr in PCB to near the end of the memory page (leave TF space)
