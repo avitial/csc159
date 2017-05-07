@@ -55,6 +55,9 @@ extern void FSfindEvent(void);// coded in events.S, code for File Services
 extern void FSopenEvent(void);// coded in events.S, code for File Services
 extern void FSreadEvent(void);// coded in events.S, code for File Services
 extern void FScloseEvent(void);// coded in events.S, code for File Services
+extern void ForkEvent();  // coded in events.S, code for Process Life Cycle
+extern void WaitEvent();  // coded in events.S, code for Process Life Cycle
+extern void ExitEvent();  // coded in events.S, code for Process Life Cycle
 
 __END_DECLS
 
