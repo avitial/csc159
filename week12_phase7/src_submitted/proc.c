@@ -73,7 +73,7 @@ void Vehicle(void){           // phase 3 tester (multiple processes)
 }
 
 void TermProc(void){
-  int my_port, len, i;
+  int my_port, len, i, exit_num;
   char login_str[BUFF_SIZE], passwd_str[BUFF_SIZE], cmd_str[BUFF_SIZE], cwd[BUFF_SIZE];
   my_port = PortAlloc(); // init port device and port_t data associated
 
@@ -98,12 +98,13 @@ void TermProc(void){
           i++;
       }
       MyStrcpy(cwd, "/");
-      //cwd[0] = '/';
+	  exit_num = 0;
+	  //cwd[0] = '/';
       //MyBzero((char *)&cwd[1], sizeof(cwd)-1);
       break;
     } // end of 2nd while 
     while(1){ // 3rd while
-      PortWrite("Please enter command string (pwd, ls, cd, cat, exit): ", my_port);
+      PortWrite("Please enter command string (pwd, ls, cd, cat, echo, exit): ", my_port);
       PortRead(cmd_str, my_port);
 
       if(MyStrlen(cmd_str)==0) continue;
@@ -113,16 +114,21 @@ void TermProc(void){
 
       if(MyStrcmp(cmd_str, "pwd\0",len)){
         PortWrite(cwd, my_port);
-	PortWrite("\n\r", my_port);
+		PortWrite("\n\r", my_port);
       } else if (MyStrcmp(cmd_str, "cd ", 3)){
         TermCd(&cmd_str[3], cwd, my_port);
       } else if(MyStrcmp(cmd_str, "ls\0",len)){
         TermLs(cwd, my_port);
       } else if(MyStrcmp(cmd_str, "cat ", 4)){
         TermCat(&cmd_str[4], cwd, my_port);
-      } else{
+	  } else if (MyStrcmp(cmd_str, "echo\0", 4)){
+		  PortWrite(cmd_str, my_port);
+		  TermBin(&cmd_str[4], cwd, my_port, &exit_num);
+	  }
+	  else{
         PortWrite("Command not recognized!\n\r", my_port);
-      }
+		//exit_num = TermBin(char *name, char *cwd, int my_port);
+	  }
     } // end of 3rd while
   } // end of 1st while
 }
@@ -215,6 +221,21 @@ void TermLs(char *cwd, int my_port){
     PortWrite(ls_str, my_port);
   }
   FSclose(my_fd);
+}
+
+void TermBin(char *name, char *cwd, int my_port, int *exit_num){
+	char ls_str[BUFF_SIZE], attr_data[BUFF_SIZE];
+	attr_t *attr_p;
+	int cpid;
+
+	FSfind(name, cwd, attr_data);
+	if(attr_p->mode == MODE_EXEC){
+		cpid = Fork(attr_p->data);
+	} else {
+		PortWrite("Error message: no attribute and no executable found\n\r", my_port);
+	}
+	PortWrite((char *)&cpid, my_port);
+	Wait();
 }
 
 void Attr2Str(attr_t *attr_p, char *str){

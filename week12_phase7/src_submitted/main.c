@@ -18,6 +18,7 @@ struct i386_gate *IDT_p;
 unsigned short *ch_p = (unsigned short*)0xB8000; // init ch_p pointer to vga
 sem_t sem[Q_SIZE];
 port_t port[PORT_NUM];
+mem_page_t mem_page[MEM_PAGE_NUM];			// OS will then manage memory
 
 void IDTEntrySet(int event_num, func_ptr_t event_addr){
 	struct i386_gate *IDT_tbl = &IDT_p[event_num];
@@ -45,6 +46,7 @@ int main() {
   MyBzero((char *)&free_q, sizeof(q_t));
   MyBzero((char *)&sem, (sizeof(sem_t))*Q_SIZE);
   MyBzero((char *)&port, (sizeof(port_t)*PORT_NUM));
+  MyBzero((char *)&mem_page, (sizeof(mem_page_t)*MEM_PAGE_NUM));
 
   current_time = 0;             // init current time 
   vehicle_sid = -1;             // vehicle proc running
@@ -55,6 +57,10 @@ int main() {
   
   for(i=0; i<PORT_NUM; i++){
     port[i].owner = 0;
+  }
+  for (i = 0; i<MEM_PAGE_NUM; i++){
+	  mem_page[i].owner = 0;
+	  mem_page[i].addr = (char *)MEM_BASE + (MEM_PAGE_SIZE * i); 
   }
 
   IDT_p = get_idt_base(); // init IDT_p (locate IDT location)
@@ -76,7 +82,11 @@ int main() {
   IDTEntrySet(FSOPEN_EVENT, FSopenEvent);
   IDTEntrySet(FSREAD_EVENT, FSreadEvent);
   IDTEntrySet(FSCLOSE_EVENT, FScloseEvent);
-  
+  // phase 7
+  IDTEntrySet(FORK_EVENT, ForkEvent);
+  IDTEntrySet(WAIT_EVENT, WaitEvent);
+  IDTEntrySet(EXIT_EVENT, ExitEvent);
+
   //phase 6
   for(fd_num = 0; fd_num<FD_NUM-1; fd_num++){
     fd_array[fd_num].owner = 0;
@@ -147,7 +157,17 @@ void Kernel(TF_t *TF_p) {       // kernel code exec (at least 100 times/second)
     case FSCLOSE_EVENT:
       FScloseHandler();
       break;
-    
+	//phase 7
+	case FORK_EVENT:
+		ForkHandler((char *)TF_p->eax, (int *)TF_p->ebx);
+		break;
+	case WAIT_EVENT:
+		WaitHandler((int *)TF_p->eax);
+		break;
+	case EXIT_EVENT:
+		ExitHandler(TF_p->eax);
+		break;
+
     default:
       cons_printf("Kernel Panic: unknown event_num %d!\n"); 
       breakpoint();

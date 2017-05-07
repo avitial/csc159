@@ -195,3 +195,39 @@ void FSclose(int fd){ //close allocated fd (FD)
       : "g" (fd)
   );
 }
+
+int Fork(char *p){       // parent creates child, child PID returns
+	int cpid;
+
+	asm("pushl %% eax;
+		movl %0, %%eax;
+		int $0x71;
+		popl %%eax"
+		: "=g" (cpid)
+		: "g" ((int *)p)
+	);
+	return cpid;
+}
+
+int Wait(void){          // parent process waits exit_num from exiting child
+	int exit_num;
+
+	asm("pushl %%eax;
+		int $0x72;
+		movl %%eax, % 0;
+		popl %%eax"
+		: "=g" (exit_num)
+		:
+	);
+	return exit_num;
+}
+
+void Exit(int exit_num){ // process exits, send exit_num to parent
+	asm("pushl %%eax;
+		movl % 0, %%eax;
+		int $0x73;
+		popl %%eax"
+		:
+		: "g" (exit_num)
+	);
+}

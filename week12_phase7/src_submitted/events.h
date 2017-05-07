@@ -28,6 +28,10 @@
 #define FSOPEN_EVENT    0X6E
 #define FSREAD_EVENT    0x6F
 #define FSCLOSE_EVENT   0X70
+// events for process life cycle (phase 7)
+#define FORK_EVENT		0x71
+#define WAIT_EVENT		0x72
+#define EXIT_EVENT		0x73
 
 #ifndef ASSEMBLER             // skip below if ASSEMBLER defined (from an assembly code)
                               // since below is not in assembler syntax

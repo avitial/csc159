@@ -12,7 +12,7 @@
 void NewProcHandler(func_ptr_t p){ // arg: where process code starts
   int pid;
 
-  if((free_q.size == 0)){ // this may occur for testing
+  if(free_q.size == 0){ // this may occur for testing
     cons_printf("Kernel Panic: no more PID left!\n");
     breakpoint();         // breakpoint() into GDB
   }
@@ -464,4 +464,63 @@ void FScloseHandler(void) {
 
   if(FScanAccessFD(fd, current_pid))fd_array[fd].owner = 0;
     else  cons_printf("FScloseHandler: cannot close FD!\n");
+}
+
+void ForkHandler(char *bin_code, int *child_pid) {
+	int i;
+
+	for(i = 0; i < MEM_PAGE_NUM; i++){
+		if(mem_page[i].owner == 0) break;
+	}
+	
+	if (i == MEM_PAGE_NUM){
+		cons_printf("Kernel Panic: no memory page available!\n")
+		*child_pid = 0;
+		return;
+	}
+
+	if (free_q.size == 0){ // this may occur for testing
+		cons_printf("Kernel Panic: no PID available!\n");
+		*child_pid = 0  // no PID can be returned
+		return;
+	}
+	*child_pid = DeQ(&free_q);     // get 'pid' from free_q
+	MyBzero((char *)&pcb[(int)&child_id], sizeof(pcb_t));
+	pcb[(int)&child_id].state = READY;
+	pcb[(int)&child_id].ppid = current_pid;
+	MyBzero((char *)&mem_page[(int)&child_id].addr, sizeof(MEM_PAGE_SIZE)); // clear memory page
+	mem_page[&child_id].owner = pcb[(int)&child_pid].ppid;
+	MyMemcpy((char *)&mem_page[(int)&child_id], bin_code, MEM_PAGE_SIZE);
+
+	pcb[(int)&child_pid].TF_p = (TF_t *)&mem_page[(int)&child_pid + (MEM_PAGE_SIZE - sizeof(TF_t))]; // set trapframe ptr in PCB to near the end of the memory page (leave TF space)
+	// then fill out the eip of the TF
+	pcb[(int)&child_pid].TF_p->eip = (unsigned int)&mem_page[(int)&child_pid]; //  set the EIP of trapframe to the start of the memory page
+	pcb[(int)&child_pid].TF_p->eflags = EF_DEFAULT_VALUE | EF_INTR; // EFL will enable intr!
+	pcb[(int)&child_pid].TF_p->cs = get_cs(); // duplicate from current CPU
+	pcb[(int)&child_pid].TF_p->ds = get_ds(); // duplicate from current CPU
+	pcb[(int)&child_pid].TF_p->es = get_es(); // duplicate from current CPU
+	pcb[(int)&child_pid].TF_p->fs = get_fs(); // duplicate from current CPU
+	pcb[(int)&child_pid].TF_p->gs = get_gs(); // duplicate from current CPU
+}
+
+void WaitHandler(int *exit_num_p) {
+	int child_pid, page_index;
+	
+	for(page_index = 0; page_index<PROC_NUM; page_index++){
+		if (pcb[page_index].state == ZOMBIE && pcb[page_index].ppid == current_pid){
+			child_pid = (int)&exit_num_p;
+		} else {
+			pcb[page_index].state = WAIT;
+			current_pid = 0;
+			return;
+		}
+	}
+	EnQ(child_pid, &free_q);
+	pcb[child_pid].state = FREE;
+	mem_page[child_pid].owner = 0;
+	// loop thru pcb[] looking for ppid being running PID and state ZOMBIE
+}
+
+void ExitHandler(int exit_num){
+	int ppid, *exit_num_p, page_index;
 }

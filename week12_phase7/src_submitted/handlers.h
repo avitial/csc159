@@ -34,5 +34,9 @@ dir_t *FSfindName(char *);
 dir_t *FSfindNameSub(char *, dir_t *);
 void FSdir2attr(dir_t *, attr_t *);
 void FScloseHandler(void);
+// Process Life Cycle (phase 7)
+void ForkHandler(char *, int *);
+void WaitHandler(int *);
+void ExitHandler(int);
 
 #endif

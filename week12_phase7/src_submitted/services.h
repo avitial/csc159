@@ -23,5 +23,8 @@ int FSopen(char *, char *);
 void FSread(int, char *);
 void FSclose(int);
 // services for process life cycle (phase 7)
+int Fork(char *p);       // parent creates child, child PID returns
+int Wait(void);          // parent process waits exit_num from exiting child
+void Exit(int exit_num); // process exits, send exit_num to parent
 
 #endif
