@@ -1,0 +1,122 @@
+<body bgcolor=white>
+<small><i>
+Sacramento State<br>
+Computer Engineering / Computer Science<br>
+CpE/CSc 159 Operating System Pragmatics (Spring 2017)<br>
+</i></small>
+<p>
+<center>
+<big><b>Phase 7 &nbsp; Process Life Cycle</big></b>
+</center>
+
+<h3>Goal</h3>
+<ol>
+<li>
+To cater for a process life cycle, our OS needs to have new services:
+<tt>int Fork(int code)</tt>, <tt>int Wait(void)</tt>, and <tt>void
+Exit(int)</tt>. The kernel will also manage the memory resource.
+<p>
+<li>
+A typical shell command allows the creation of child processes to
+perform executables readily compiled. A child process has its own code,
+data, and runtime stack space. Processes are created by <i>Fork</i>
+services. A parent process after the call will subsequently issue 
+service call <i>Wait</i>. This is because a child process acts as
+a subroutine inheriting the parent's environments (I/O channels)
+and using them. The Wait call may block to avoid I/O clobbering. 
+<p>
+<li>
+If a child process calls Exit() before its parent calls Wait(),
+the <i>ExitHandler</i> will suspend the child process by placing
+it in a <tt>ZOMBIE</tt> state (the resources are not yet reclaimed
+by the kernel). As the parent later calls Wait(), the zombie child
+is then really terminated with resources all reclaimed. An <tt><b>
+exit number</tt></b> will then be given to the parent process.
+<p>
+The parent (TermProc) will have a new command <b><tt>echo</b></tt>
+which shows the exit number from the child process exited, onto
+the terminal. The given demo code <tt>sleep3.s</tt> in the
+<tt>bin-code</tt> sleeps for 3 seconds and returns the address
+of its starting instruction. Read the code.
+</ol>
+
+<h3>Programming Details</h3>
+<ol>
+<li>
+There given <i><b>sleep3.s</b></i> is what you must first build to
+added into the file-service data. It will appear as an executable
+in the <i>bin</i> directory so it can be executed. Run the demo.
+<p>
+<li>
+When a command string is entered from the terminal, TermProc can have
+a subroutine <tt>void TermBin(char *name, char *cwd, int my_port,
+int *exit_num)</tt> to deal with it. In this new subroutine, it
+first asks the file service to get the attribute information of
+the command, and check if it is an executable, before issuing
+a Fork() call which is given the location of the executable (part
+of the attribute information). A child process will be created
+and scheduled to run the executable. TermProc then issues a Wait()
+call to wait for the executable to exit, and an exit number will
+be returned. This may block the parent (TermProc). The child process
+eventually ends and issue an Exit() call which unblocks TermProc
+and returns the the exit number.
+<p>
+<li>
+The <i>ForkHandler</i> first allocates a new PID and memory page.
+It then clears both contents, sets the parent PID (<b>ppid</b>) in
+the PCB (the calling process). The state of the new process is set
+to READY and the PID is enqueued to ready_q. 
+The memory page is a 4K-byte page (common unit size for storage).
+The executable code will be copied from the file system to the
+memory page along. The stack space will hold the initial trapframe
+that is built towards the end of the memory page. The trapframe
+address in the PCB is not set in proc_stack[][], and the program
+counter (EIP) of the trapframe is set at the start of the memory page.
+<p>
+<li>
+At OS bootstrap, the resource of 100 memory pages are collected as
+<tt><b>mem_page_t mem_page[<i>MEM_PAGE_NUM</i>]</tt></b>. Each holds an owning
+PID information and pointer to a whole memory page: <b>int owner</b> and
+<b>char *addr</b>. Owners are all set to be 0 to indicate availability,
+and addresses are set from 14M (0xE00000, where MyOS.dli ends) with an
+increment of 4096 bytes (<i>MEM_PAGE_SIZE</i>).
+<p>
+<li>
+About WaitHandler. As a parent process calls Wait() before any its
+child process calls Exit(), the handler will fail to find any ZOMBIE
+child of its and thus block the parent process by setting its state
+to <tt>WAIT</tt>, etc. Otherwise, the exit number given by the child
+will be relayed to the parent process. The resources (PCB and memory)
+the child process was using will also be reclaimed by the OS.
+<p>
+<li>
+About ExitHandler. As a child process calls Exit() with an exit number,
+before its parent calls Wait(); the handler will "suspend" the child
+process by changing its state to <tt><b>ZOMBIE</b></tt> (not totally
+terminated since resources are not reclaimed). Otherwise, the blocked
+parent (see above) is released to ready_q, with the exit number relayed.
+The resources of the child process are then reclaimed.
+<p>
+
+</ol>
+
+<h3>Deliverables</h3>
+<blockquote>
+In the usual place, submit the source code including your
+<i><b>bin-code</b></i> directory.
+</blockquote>
+
+<h3>Review Questions</h3>
+<ol>
+<li>
+Did you test with a Sleep(5) call before the Wait() call in the
+TermBin() code (so the child process can try to exit first and
+get into the zombie state), and the runtime can still work?
+<li>
+How are background running processes handled, such as those with
+symbol "&" appended to a shell command?
+<li>
+What're entailed to make our OS to cater the background-running
+feature stated above? (The capacity to service signal IPC?)
+</ol>
+
