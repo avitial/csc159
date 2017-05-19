@@ -1,0 +1,93 @@
+<html><head><title>CpE/CSc 159 Phase 4 Device Driver: Busy-Poll Printing</title></head>
+<body>
+<small><i>
+Sacramento State<br>
+Computer Engineering/Computer Science<br>
+CpE/CSc 159 Operating System Pragmatics (Spring 2017)<br>
+</i></small>
+
+<p>
+<center><big><b>Phase 4 &nbsp;
+Simple Device Driver: "Busy Poll" Printing</b></big><br>
+</center>
+<p>
+
+<h3>Device Driver Construction</h3>
+<ol>
+<li>
+The goals of this phase is to learn some basics of a device
+driver, and how to extend our OS for device services.
+<p>
+<li>
+A peripheral device is often coupled with driver software
+which can be in the form of a handler. This method is oftern
+coined "busy poll." The advantages are to enable the kernel
+to have total control in event handling. The kernel can thus
+check for time-out, force a task abort, etc., during the usage
+or request for a device. The disadvantages is the lengthy time
+to run which may bog down the OS performance.
+<p>
+<li>
+To handle an I/O device which is usually much slower than a
+CPU, the driver repeatedly polls the status of an I/O port
+for its readiness (or be deeemed a time-out). We will first
+build a device driver (a handler) to communicate with a conventional
+dot-matrix printer.
+<p>
+<li>
+The directory <b><i>"busy-poll"</b></i> contains the demonstration
+code on how the so-named method is carried out. Use a separate
+directory to copy the source file and compile it to run. Study how
+<i>busy-poll.c</i> is constructed.
+<p>
+<li>
+Move the keyboard input handling from Kernel() into process
+<tt>Init</tt> which will upon the <i><b>p</b></i> key, prints out
+a message string to the printer. We only need two key events:
+the 'b' (for GDB breakpoint) and 'p' (to test printing).
+<p>
+<li>
+The new service call to print is <i><b>void SysPrint(char *str_to_print)</b></i>
+which process Init will use (when 'p' key is pressed). Via this call
+the address of the string-to-print will be passed to the kernel.
+The kernel then calls the handler <i><b>SysPrintHandler(char *)</b></i>
+to print. Assocaited with this new service there are, similar to before,
+a new constant <i><b>SYSPRINT_EVENT</i></b> and an assembler interface
+<i><b>SysPrintEvent</i></b> of which its address is set into the IDT.
+<p>
+<li>
+By now, you should be very familiar with adding a new OS service:
+add new code to files <i>events.S/.h, services.c/.h, handlers.c/.h</i>;
+add main.c will have a new IDT registration and switch case.
+</ol>
+
+<h3>Deliverables</h3>
+<blockquote>
+The source code submitted to your designated Voyager dropbox as before.
+Besides the source code, a <i><b>HARDCOPY</b></i> of the printout from lab
+RVR2001 using one of the dot-matrix printers in there. The hardcopy must
+contains 10 lines of consecutive printing out the string of your team name
+and team member names. Run demo.dli to see what the format is. The hardcopy
+is to be collected in the first class session following the due date.
+</blockquote>
+
+<h3>Question</h3>
+<blockquote>
+<li>
+The needed time delay after resetting the printer port, where and how
+to get it? Sleep(1) in the handler?
+<li>
+Can the inefficient and lengthy handler SysPrintHandler() be elated off
+its heavy duty? (Let the service call takes does the looping of the string
+to print and sends each character to at the time. But, in in this case
+the resetting of the printer will have be done beforehand (before the loop)
+hard-coded or via another "int" call?)
+<li>
+Expand from the above, the concept of a "cooperative" OS (CF "preemptive"):
+voluntary sleep/delay calls, requesting to lower own scheduling priority
+(the "nice" unix command).
+<li>
+How can our OS avoid mixing up print jobs if multiple processes send
+print requests, e.g., calling SysPrint(), at the same time?
+</blockquote>
+
