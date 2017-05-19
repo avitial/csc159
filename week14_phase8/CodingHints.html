@@ -1,0 +1,141 @@
+<center><h2>Phase 8 Virtual Memory</h2></center>
+
+Must work on two terminals. Program and build a new "printer_msg.s"
+into "bin_code/." It prints to the printer a greeing message (run demo)
+and returns the virtual address of its local message to TermProc.
+Add "Sleep(4);" before Wait() call, in TermBin(), in order to test
+if the wait call is after the exit call of the child process.
+
+<h3>Address Translation Tables</h3>
+<ol>
+<li>
+Your OS will need a new global data: <tt>int kernel_MMU</tt> which
+is initialized during main() by calling <tt>int get_cr3(void)</tt>.
+This is the address of the main kernel address-translation table
+the MMU has been using for our kernel (the real-address mode).
+<li>
+In the PCB type a new info is to be needed: <tt>int MMU</tt> which
+will hold the address to the main address-translation table of the
+process. This is used as the argument to call <tt>set_cr3(int)</tt>
+to set the MMU before calling Loader().
+In main(), the MMU in all the PCB are to be set to zero initially.
+In ForkHandler(), the MMU of the PCB of the new process is set to
+the address of the main table built in a memory page.
+<li>
+How the MMU translates a virtual address:
+as a process EIP is set virtually 1G (0x40000000), the first 10 bits
+is 256 so that entry in the main table will be read as the address
+of a code subtable. The next 10 bits of the virtual address is 0 so
+entry 0 of the subtable is read as the memory address of a code page.
+The last 12 bits of the virtual address is 0 so the instruction is
+fetched at byte 0 (in the code page).
+<li>
+To load the trapframe set virtually at 2G-64 (0xffffffc0): again,
+the first 10 bits of that address is 511 so that entry in the main
+table is read to locate a stack subtable. The second 10 bits is
+1023 so that entry in the subtable is read to find the memory page
+for the runtime stack. The last 12 bits is 4032 so that is where
+in the stack page to fetch the trapframe (the data structure).
+<li>
+When setting an entry, set two flags <tt>RW</tt> and <tt>Present</tt>
+to 1. Others left 0. A bitwise "OR" operation with 0x3 adds them to
+a real address, e.g., address X | 0x3 yields a combined binary ...11.
+</ol>
+
+<h3>Reclaiming Virtual Memory</h3>
+<blockquote>
+When memory pages are reclaimed by ExitHandler, the target PC may
+reboot if the MMU is not returned the original kernel translation
+tables.
+</blockquote>
+
+<h3>ForkHandler Revisited</h3>
+<blockquote>
+<pre>void ForkHandler(char *bin_code, int *child_pid) {
+   int i, got, page_got[5];
+   TF_t *TF_p;                                                 // local ptr, use below
+   char *main_table, *code_table, *stack_table, *code_page, *stack_page; // easy naming
+
+A. try to locate 5 free memory pages:
+   set 'got' to 0
+
+   loop i thru mem_page[i]
+      if owner is 0
+         page_got[got++] = i  // got 1 page index
+         if 'got' enough (becomes 5), break loop
+
+   if didn't get 5
+      cons_printf("Kernel Panic: not enough memory pages available!\n");
+      set 0 as what child_pid points
+      return (end this handler)
+
+B. if free_q.size is 0
+      cons_printf("Kernel Panic: no PID available!\n");
+      set 0 as what child_pid points
+      return (end this handler)
+
+C. set the better-named addresses (char *) from the 5 allocated memory pages:
+      main_table = address of the 1st DRAM page allocated
+      code_table = ... 2nd ...
+      stack_table = ... 3rd ...
+      code_page = ... 4th ...
+      stack_page = ... 5th ...
+
+D. get a new PID (set it as what child_pid now points) from free_q
+
+   loop 'got' from 0 to 4:
+      set the owner of memory pages (indexed by page_got[got]) to the new pid
+      clear the same memory page
+
+   clear its PCB
+   enqueue its PID to ready_q
+   update its state
+   update its ppid, too
+   set its TF_p to 2G (0x80000000) - size of trapframe type  <------- ***
+   set the MMU in the PCB of the new process to main_table <------- ***
+
+E. copy the code into code_page (from the given argument)
+
+F. set local variable TF_p to stack_page + MEM_PAGE_SIZE - sizeof(TF_t) <------- ***
+   set TF_p->EIP of TF to 1G (0x40000000)                          <------- ***
+   set rest of TF_p->xxx the same way as before
+
+G. MyMemcpy 1st 4 entries from kernel_MMU into main_table
+   Set entries 256 of main_table to code_table (bitwise-OR the two flags)
+   Set entries 511 of main_table to stack_table (bitwise-OR the two flags)
+   set entry 0 in code_table to code_page (bitwise-OR the two flags)
+   set entry 1023 in stack_table to stack_page (bitwise-OR the two flags)
+</blockquote>
+
+<h3>WaitHandler() Revisited</h3>
+<blockquote>
+As a zombie child is found to return the exit number to the parent, the MMU may
+need to temporarily set to the child's translation table in order to access its
+EAX in the trapframe which is a virtual address. After that change the MMU back.
+</blockquote>
+
+<h3>Helpful GDB Commands</h3>
+<blockquote><pre>
+To check the trapframe address of process 4:
+   gdb> p pcb[4].TF_p
+To see the content of the TF itself (in decimal values):
+   gdb> p/d *pcb[4].TF_p
+To see what's in entry 256 of main_table (by array notation):
+   gdb> p main_table[256]
+To see what's in entry 511 of some table at 0xe00000 (by pointer notation):
+   gdb> p *(0xe00000 + 511 * 4)
+To see what's in entry 1023 of some table at 0xe02000 (by pointer notation, in decimal):
+   gdb> p/d *(0xe02000 + 1023 * 4)
+Other useful GDB commands:
+   gdb> p current_pid
+   gdb> p code_table
+   gdb> p port[1]
+   gdb> p port[1].write_q
+   gdb> p sem[1]
+   gdb> p mem_page[0]
+   gdb> where
+   gdb> info b
+   gdb> info reg
+   gdb> del 2
+</blockquote>
+

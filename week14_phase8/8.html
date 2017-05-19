@@ -1,0 +1,224 @@
+<html><head><title>CpE/CSc 159 Phase 8 Virtual Memory
+</title></head>
+<body bgcolor=white>
+<small><i>
+Sac State, Computer Engineering/Computer Science<br>
+CpE/CSc 159 Operating System Pragmatics (Spring 2016)<br>
+Instructor: W. Chang
+</i></small>
+
+<p>
+<center>
+<big><b>Phase 8 Virtual Memory</b></big><br>
+<i>"In a dream, asleep on wide open prairies; and waken, to which place?"</i>
+<br>
+<i>"A walk to a babling brook, and step in; water moves on, creek not found!"</i>
+</center>
+
+<h3>Goals</h3>
+
+<ol>
+<li>
+In the previous OS phase a new processes was created in a given
+DRAM memory segment. In this phase a virtual memory space will be
+given to expand runtime space virtually from 1G ~ 2G-1 (0x40000000
+~ 0x7fffffff) bytes.
+<p>
+<li>
+Virtual address space is supported by real DRAM pages during the
+process runtime, although partially (a few pages at a time). The
+CPU component that translates a virtual address is the <i>Memory
+Management Unit (MMU)</i>. It translates all addresses the CPU asks
+for either instruction or data, on the fly, during each cycle of
+instruction fetch and execution.
+<p>
+<li>
+The compiled and linked executable files will carry virtual addresses
+by default. The virtual address of the trapframe will be set toward the
+end of the process' virtual space, <i>2G - size of the trapframe</i>,
+and the code will start at virtual <i>1G</i> bytes. These numbers will be
+the same for all new processes created via "fork" service calls.
+<p>
+<li>
+The "fork" service will also create address-translation tables so the
+MMU can use them. Before a process is loaded to run by <i>Loader()</i>,
+our kernel code must first set the MMU to the address of the right
+translation table.
+<p>
+<li>
+The MMU actually uses translation tables all the time. There is a
+set of translation tables the kernel has been using since its bootstrap.
+They are made by the initial SPEDE setup code ("boot-loader"). Some of
+these tables must be included as part of the translation tables for a
+newly process in order for it to make kernel service calls.
+</ol>
+
+<h3>Address Translation</h3>
+<ol>
+<li>
+The Intel MMU has a <i>two-tier</i> memory paging system: the leftmost
+10 bits in a 32-bit virtual address will be used as the entry index
+into the main translation table to find a real address that points to a
+translation subtable. And, the next 10 bits in the virtual address will
+be used as the entry index into the subtable to find a real address that
+points to a code/stack page. The rest 12 bits in the virtual address
+will be the byte index in the code/stack page found.
+<p>
+<li>
+What will be added to the PCB: <tt>int MMU</tt>, which is the address
+of the main address-translation table to set the CPU MMU (before the
+Loader() call) for running the process in virtual space. This number
+is initialized zero during bootstrap stage of our OS, and is later set
+by ForkHandler() when creating a process to run in a virtual space.
+<p>
+<li>
+An entry in the main table is set with a real address leading to a
+subtable. In terms, an entry in a subtable can be set with a real
+address of a memory page (containing code/stack). Entries in tables
+are usually sparsely used. During runtime, new pages may be needed
+(page faults) as instructions may read/write at virtual addresses
+outside of the initial virtual space.
+<p>
+<li>
+The ForkHandler() will start by allocating five (not just one) memory
+pages in order to create: one main address-translation table and tw.
+subtables (one to point to code pages, one to point to stack pages),
+plus the actual inital code and stack pages. A main/subtable has 1024
+entries, each entry is 4 bytes in size; a total of 4KB (a memory page).
+<p>
+<li>
+There are two entries in the main address-translation table that point
+to two (code and stack) subtables, they are given the real addresses
+of two memory pages allocated. Since the virtual process space starts
+at 1G (0x40000000), the first 10 bits is 256<sub>10</sub>; and this is
+also the index of the entry in the main table that holds the real address
+(of one subtable). And since the stack ends virtually 2G-1B and the first
+10 bits of this number is 511<sub>10</sub> which will be the index of the
+entry in the main table having the other real address (of the other subtable).
+<p>
+<li>
+In the main address-translation table will also need to have its first
+four entries copy from what the kernel is currently using. The SPEDE
+function <i>int get_cr3()</i> can be used to obtain this (<i>int kernel_MMU</i>).
+This is to be done during the bootstrap stage of our OS. The ForkHandler()
+can then uses it to do the copying. These four entries enables a process
+to call for kernel services.
+<p>
+<li>
+In the code subtable, the 1st entry is to be set with the real address
+of a memory page which will have a copy of the executable from the file
+service. In the stack subtable the last entry is to be set to the real
+address of another memory page to house the initial trapframe of the a
+new process. The EIP in the trapframe will be set with the virtual address
+1G (0x40000000). The trapframe address of the PCB for this new process
+will be 2G - size of trapframe type.
+<p>
+<li>
+To set the MMU the SPEDE function <tt>void set_cr3(int)</tt> is used.
+This is done before loading a new process to run, and upon the exiting
+of a process (to switch back to the kernel translation table).
+</ol>
+
+<h3>Details of Address Translation</h3>
+
+<ol>
+<li>
+The MMU has a 2-tier translation scheme (a main table paired with several
+subtables): given a 32-bit virtual address, it is divided into three parts:
+the first and second 10 bits, and the rest 12 bits. The first 10 bits forms
+the entry number (index) in the main table where a real address of a subtable
+should have been stored (otherwise, a "Page Fault"). The second 10 bits is
+the entry number (index) in the subtable (found by the first 10 bits) where
+a real address of a memory page should have been given (otherwise, "Page Fault").
+The last 12 bits forms the byte offset in the final memory page found.
+<p>
+<li>
+In short, ForkHandler allocates five memory pages and a new PID, and it creates:
+   <ol type=i>
+   <li>a main table, which has 6 valid entries to set (in order to point to 6
+       subtables). The first 4 entries are copied from the kernel main table.
+       The entries 256 and 511 have real addresses to two subtables (bleow).
+   <li>One code subtable, in which entry 0 has a real address to a code page.
+   <li>One stack subtable, in which entry 1023 has a real address to stack page.
+   <li>The code page has the executable copied from the file service.
+   <li>The stack page has an initial process trapframe with its EIP set 1G.
+   <li>The new PCB has the trapfrme address set 2G-size of trapframe type.
+   </ol>
+<p>
+<li>
+Right before loading a process, if this address indicated in the PCB has been
+set (not zero), the MMU must be set with this address by <tt>void set_cr3(int)</tt>.
+<p>
+<li>
+In <i>main()</i> use <i>get_cr3</i> to set <i>kernel_MMU</i>. This address
+is later used by to create a main table in ForkHandler(), and to return from
+a virtual-space table in ExitHandler().
+<p>
+<li>
+Since memory pages are intervals of 4K bytes, only the first 20 bits in
+the addresses actually change. The last 12 bits are always zeros. So these
+bits are used as flags to notify the MMU the attributes of the memory page,
+during the hardware address translation. The right most seven flags (bits)
+are important to a OS:
+<ol type=a>
+<li><tt>PRESENT</tt>, 0: page not present, 1: page present.
+<li><tt>RO / RW</tt> , 0: page is read-only, 1: read-writable
+<li><tt>USER MODE</tt>, 0: superuser to access, 1: user can access
+<li><tt>CACHE POLICY</tt>, 0: write back; 1: write-through (if cache-use set)
+<li><tt>CACHE USE</tt>, 0: page content not to be cached, 1: to be cached
+<li><tt>ACCESSED</tt>, 0: entry never looked up by MMU, 1: accessed
+<li><tt>DIRTY</tt>, 0: page content not changed/written, 1: changed/written
+</ol>
+<p>
+<li>
+In each valid entry, we will set both flags RW and Present to 1 (others 0).
+This must be done correctly while setting new table entries.
+<p>
+<li>
+The target PC would reboot whenever an address translation cannot be 
+arried out (due to any conflicts from these flags). The page being
+"not present," RW on RO pages, user/super mode, etc., are all possible
+causes. Use GDB to verify both the PCB and tables are correctly done
+at the end of the ForkHandler().
+</ol>
+
+<h3>Deliverables</h3>
+<ol>
+Source files, including the directory <i><b>bin-code</b></i> that has
+your assembly code to be verified.
+</ol>
+
+<h3>Review Questions</h3>
+<ol>
+<li>
+Where in your kernel code set_cr3() calls must be given?
+<p>
+<li>
+What are the type of CPU exceptions that may occur as the MMU looks
+into a table entry during its effort of address translation?
+<p>
+<li>
+How can we code a process so it will need new pages during runtime?
+How can your OS handle this? Wouldn't the handling/recovering of a
+page fault requires rolling back the program counter of the CPU to
+retry the same intruction (that caused the error)?
+<p>
+<li>
+What is the pragmatic reason of using the 2-tier translation scheme?
+<p>
+<li>
+How can our OS maintain a healthy proportion of DRAM space not used?
+Should there be a "swapper" daemon process? How can LRU counts be
+implemented? How to indicate a page was swapped out in the swap space
+(not brand new)?
+<p>
+<li>
+Can translation tables also be swapped in and out with the support of
+a "swap space" like the code and stack pages themselves?
+<p>
+<li>
+The MMU has TLB to cache table entries. The instruction and data are
+cached separately. Should the search for a cache hit be based on a
+virtual or real address?
+</ol>
+
