@@ -1,0 +1,136 @@
+<pre>
+This is the most current write-up, updated 1-31-2017, Dr. Chang, copyfree.
+<i>Katya Niosi</i> made most files here to make it easier to set up, including a video.
+
+First try things out in the real lab (RVR2001).
+<i>Must experience the real world before going into a virtual one, or be forever lost...</i>
+
+A. Get these files:
+   1. the <i>VirtualBox install app</i> (Mac or Windows) and install it.
+      (Originals are from <i>http://www.virtualbox.org/wiki/Downloads</i>.)
+   2. ova files (modified from <i>Aaron Diab's</i> google drive which is at:
+          <i>https://drive.google.com/folderview?id=0Bxey6BVAiq7kM1ViSjNEUXZWN3c&usp=sharing</i>
+          <i>SPEDE.ova</i> -- Linux (Unbuntu) PC disk image, including our SPEDE software,
+          <i>flames.ova</i> -- target PC disk image, including DOS and FLAMES.)
+
+B. <i>Import</i> these .ova files to make them virtual machines.
+   1. Run VirtualBox app, the left column shown blank space.
+   2. Pick from top menu: <i>File->Import Applicance</i>.
+   3. Navigate to file <i>LinuxPC.ova</i> and import it, and it shows onto the left,
+      Import <i>TargetPC.ova</i> the same way.
+      As to <i>Terminal1.ova, Terminal2.ova, and Printer.ova</i>; they can wait.
+   4. Set in VirtualBox Preferences: <i>Input -> uncheck "Auto Capture..."</i>
+
+C. Check settings of the virtual machines (especially those <i>Ports</i>).
+   1. Highlight the <i>LinuxPC</i> machine icon from the left.
+   2. Click <i>Settings</i> icon (looks like a sprocket icon).
+   3. Click <i>Ports</i> icon.
+   4. Pick <i>Serial Ports</i> side.
+   5. Pick <i>Port 1</i> (already highlighted among the 4 ports placed in a row).
+   6. Check <i>Enable Serial Port</i> box.
+   7. For Port Number, select <i>COM1</i> (IRQ and I/O numbers are fixed/correct).
+   8. For Port Mode, select <i>Host Pipe</i>.
+   9. Uncheck <i>Connect to existing pipe/socket</i> box (we want it to create new)
+   a. for <i>Path/Address</i>: on a Mac computer, enter <b>/tmp/LinuxPCtoTargetPC</b>
+      (overwrite any old typing). In a Windows computer, it's <b>\\.\pipe\LinuxPCtoTargetPC</b>.
+   b. Pick <i>USB</i> side (next to <i>Serial Ports</i>).
+   c. Uncheck <i>Enable USB...</i> box.
+   d. Click <i>Display</i> icon.
+   e. Uncheck <i>Enable 3D...</i> box (otherwise it starts very slow).
+
+------------- That's it! Try Your First Run (like in RVR2001) -------------
+
+D. Run <i>LinuxPC</i> by highlighting it on the left, and click <i>Start</i>.
+   You should see the Ubuntu Desktop (may come up very slowly if the <i>Enable 3D...</i>
+   box is not unchecked (see step e. above).
+   Press <i>Left-Command</i> key whenever your mouse cursor disappears.
+   Open a terminal by double-click the Terminal icon on Ubuntu Desktop, enter
+   <b>chsh</b> to switch shell (password <b>spedeuser</b>) to <b>/bin/tcsh</b> and close the
+   terminal, and open a new one (new <i>tcsh</i> reads the <i>.cshrc</i> file
+   which has a new search path for SPEDE commands). Test this by entering
+   <b>spede-mkmf</b> at the tcsh shell prompt and it should run (and just enter
+   <b>n</b> when asked to quit). You can also manually start the <i>tcsh</i> by
+   entering <b>tcsh</b> if you're still using <i>bash</i> (enter <i>ps</i> to see
+   which shell that's running).
+   The Ubuntu username is <i>user</i> (execute shell command <b>whoami</b> to check)
+   and the password is <i>spedeuser</i> (to unlock the screen saver for instance).
+
+E. Run <i>TargetPC</i>, and you see a blinking line-cursor waits downloads.
+
+F. At the Ubuntu terminal tcsh prompt (<i>LinuxPC</i>), enter the following:
+      <i>tcsh %</i> <b>wget athena.ecs.csus.edu/~changw/159/0/lab4stuff/Demo.dli</b>
+      or <b>scp -r athena.ecs.csus.edu/~changw/html/159/0/lab4stuff/Demo.dli .</b>
+      <i>tcsh %</i> <b>flash Demo.dli</b>
+      <i>FLASH %</i> <b>download</b>
+      <i>FLASH %</i> <b>flint</b>
+      <i>FLAMES></i> <b>g</b>
+   The <i>g</i> means <b>go</b>, not <i>gdb</i> (as it would when entered at the <i>FLASH</i> prompt).
+   You should see the demo run on <i>TargetPC</i> as how it would in the lab (RVR2001).
+   If needed, press <i>CTRL-C</i> to stop the runtime and quit:
+      <i>FLASH %</i> <b>quit</b>
+      <i>tcsh %</i> (back to shell)
+
+-------------------- Copying/Moving Your Source Files ----------------------
+
+   To directly access the class turn-in dropbox (served by host Voyager)
+   from the virtual Ubuntu is the same way as that from a regular ECS
+   Linux (see instruction linked from the class webpage). Just use the
+   full hostname path: <i>voyager.ecs.csus.edu</i> where <i>voyager</i> is mentioned.
+
+   The <i>git</i> tool is also installed in this Unbuntu virtual machine.
+
+   To send files with "secure copy" (<i>scp</i>) to host such as <i>titan.ecs.csus.edu</i>
+      <i>tcsh %</i> <b>scp * (your ECS username)@titan.ecs.csus.edu:~/my159phase1</b>
+   It will ask to add the titan host into a list (enter <i>yes</i>) and in the
+   destination subdirectory <i>my159phase1</i> ill be first created under
+   your login directory.
+
+   To use <i>scp</i> to copy files from a real Linux host:
+      <i>tcsh %</i> <b>scp -r (your ECS username)@titan.ecs.csus.edu:~/myStuff Stuff2</b>
+   The remote is an existing directory, and <i>Stuff2</i> is a local directory which
+   will be created. The <i>-r</i> option will recursively copy everything inside
+   that remote directory, including any subdirectories and further.
+
+----------------------------- Adding Printer -----------------------------
+
+Importing <i>Printer.ova</i>.
+   Change the path of the host pipe if needed when using a Mac.
+
+   (IRQ7 signal is not simulated by Virtual Box so the interrupt-driven
+   mode will not work. Only the busy-poll method works.)
+
+---------------------------- Adding Terminals ----------------------------
+
+Importing <i>Terminal1.ova</i> and <i>Terminal2.ova</i>.
+   Check/change the paths of <i>Host Pipes</i> if needed (Windows or Mac).
+
+-------------------------- Starting Sequence -----------------------------
+
+   Because which ports should be created first matters, start <i>LinuxPC</i>
+   before <i>TargetPC</i>; or error messages will occur. Although unchecking
+   the <i>Connect to existing...</i> box for both sides would result no error
+   messages, but the <i>.dli</i> download communication will hang at the start.
+
+   At where <i>Path/Address</i> is specified the pipe file will be seen being
+   created as a machine runs. Unchecking the <i>Connect to existing...</i> box
+   to have the first machine create it and a later machine to look for it.
+   Checking the box means another machine has created it beforehand. Hence,
+   the sequence to start a number of machines matters (cannot be arbitrary).
+   To simply just uncheck all machines will not work, either; since the
+   re-creation of the same named file does not mean the actual location
+   remains the same in the storage (especially not for SSD devices), i.e.,
+   even with the same filename, the file system would reclaim all resources
+   associated with the old one, and assign a new stoarge location; and the
+   first machine would read into an incorrect location.
+
+   A <i>pipe</i> is one of many interprocess communcation methods. A named
+   pipe is a file hosted by the actual machine to buffer data to transfer,
+   hence the name <i>host pipe</i>. To create a file in the given directory
+   path requires the read/write access privilege of the user that runs the
+   VirtualBox, therefore, the file location specified must be where your
+   processes are allowed to read/write. Otherwise, an error message about
+   not being able to find/create the host pipe will occur, similar to the
+   above problem about check/unchecking the <i>Connect to exisiting...</i> box.
+   Linux/Mac uses the <i>/tmp</i> directory while Windows uses <i>\\.\pipe</i>
+   as a public scrap space by any processes with no access restriction.
+</pre>

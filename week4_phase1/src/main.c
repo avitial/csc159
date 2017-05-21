@@ -7,7 +7,7 @@
 #include "handlers.h" // handler code
 #include "tools.h" // small functions for handlers
 #include "proc.h" // processes such as Init()
-//#include "types.h" // data types
+#include "types.h" // data types
 #include "events.h" // events for kernel to serve
 
 // kernel's own data:
