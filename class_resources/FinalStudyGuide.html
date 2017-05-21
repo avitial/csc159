@@ -1,0 +1,90 @@
+<html><head><title>CpE/CSc 159 Midterm Exam Study Guide</title></head>
+<body bgcolor=white>
+<small><i>
+Computer Engineering/Computer Science<br>
+Sacramento State<br>
+CpE/CSc 159 Operating System Pragmatics (Spring 2017)<br>
+Instructor: W. Chang
+</i></small>
+
+<p>
+<center><big><b>Midterm Exam Study Guide</b></big></center>
+<p>
+To be well prepared for the midterm exam, you should have worked on the
+projects, and understood how the code works and is implemented. Review
+the questions given at the end of each assignment. In addition, you
+should also be able to answer and analyze various aspects of the project.
+The following is a list of the definitive domains where questions will
+be drawn from descriptively:
+
+<ol>
+
+<li>
+Describe the essential role of the OS kernel according to what we
+have done so far.
+
+<p><li>
+Draw an interconnection diagram of components that makes up the
+handling of a timer event.
+
+<p><li>
+Describe the sequence of the steps the hardware and software take
+when an event occurs, including use of the IDT and a trapframe.
+
+<p><li>
+Describe how an OS event handler code module is linked up to establish
+an OS service, and the differences between setting up the handling of
+a software event versus that of a hardware event.
+
+<p><li>
+Being able to add a new kernel service of your own design.
+
+<p><li>
+Describe how a service API code passes information to the kernel,
+and how to get information returned from the kernel.
+
+<p><li>
+List the services supported by our OS we've done so far, describe
+each from how they are invoked (outline the activation steps).
+
+<p><li>
+Describe the kernel data maintained by our OS and their purposes.
+
+<p><li>
+Explain how your OS serve the <i>semaphore</i> service.
+
+<p><li>
+Describe how our OS schedules processes, and how it can be coded
+to cater different scheduling policies which may need additional
+kernel data.
+
+<p><li>
+How to be more efficient as Kernel() gets too many cases to select.
+
+<p><li>
+Describe how certain semaphore usage can induce process runtime
+abnomalities such as starvation, deadlock, and livelock.
+
+<p><li>
+What can be an alternative non-blocking semaphore wait call (e.g.,
+Linux wait3 call).
+
+<p><li>
+Identify where process privacy loss and resource leaks are to be
+carefully guarded?
+
+<p><li>
+What are additional useful information to be kept for processes,
+in a PCB, semaphore, etc., in order to have "better" OS services?
+
+<p><li>
+What is <cite>reentrant</cite> code and what has it to do with
+the construction of kernel code?
+
+<p><li>
+Discuss implications or issues that may be raised from the way
+our kernel services are implemented, in the areas of security,
+privacy, process or group access/ownership? Real-time OS issues?
+
+</ol>
+

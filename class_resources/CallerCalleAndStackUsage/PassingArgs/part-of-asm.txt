@@ -1,0 +1,70 @@
+.text
+	.align 4
+.globl main
+main:
+.LM1:
+	pushl %ebp              # save shell's ebp
+	movl %esp,%ebp          # ebp now set here
+	subl $12,%esp
+.LM3:
+	movl $1,-4(%ebp)	# local a value
+	movl $2,-8(%ebp)	# local b value
+	movl $3,-12(%ebp)	# local c value
+.LM4:
+	movl -12(%ebp),%eax	# push c value
+	pushl %eax
+	movl -8(%ebp),%eax	# push b value
+	pushl %eax
+	movl -4(%ebp),%eax	# push a value
+	pushl %eax
+	call DispMsg		# push eip, eip = DispMsg addr
+	addl $12,%esp		# adjust esp (pop 3 times)
+.L1:
+	leave			# equivalent to: movl %ebp, %esp; popl %ebp
+	ret			# ret to shell (pop eip)
+
+.section	.rodata
+.LC0:
+	.string	"d is %d\n"
+.LC1:
+	.string	"e is %d\n"
+.LC2:
+	.string	"f is %d\n"
+
+.text
+	.align 4
+.stabs "a:1",128,0,8,-4		# ELF header 128 bytes
+.stabs "b:1",128,0,8,-8
+.stabs "c:1",128,0,8,-12
+.stabs "DispMsg:F1",36,0,16,DispMsg
+.stabs "d:p1",160,0,15,8	# 8 bytes + ebp
+.stabs "e:p1",160,0,15,12	# 12 bytes + ebp
+.stabs "f:p1",160,0,15,16	# 16 bytes + ebp
+
+.globl DispMsg
+DispMsg:
+.LM7:
+	pushl %ebp              # establish new ebp
+	movl %esp,%ebp
+.LM8:
+	movl 8(%ebp),%eax	# get a as local d
+	pushl %eax
+	pushl $.LC0
+	call printf             # printf: put str addr & len into eax & ebx, call int 4 (sys_write)
+	addl $8,%esp
+.LM9:
+	movl 12(%ebp),%eax	# get b as local e
+	pushl %eax
+	pushl $.LC1
+	call printf
+	addl $8,%esp
+.LM10:
+	movl 16(%ebp),%eax	# get c as local f
+	pushl %eax
+	pushl $.LC2
+	call printf
+	addl $8,%esp
+.LM11:
+.L2:
+	leave
+	ret

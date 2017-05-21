@@ -1,0 +1,52 @@
+<h3>Lab Tools Exercise 4 - Timer Event</h3>
+
+<p>
+<ol>
+<!--
+<li>
+To reprogram timer interrupt interval, understand the original code:
+#define CLK_TCK 100                    // set IRQ 0 100Hz
+#define  TICKS  (1192180/CLK_TCK)
+// tell 8253: counter #0, load lobyte then hibyte, mode 4, binary
+    outportb(PIT0_TMRCTL,0x34);        // control word: 0011.0100b
+    outportb(PIT0_TMR0, LOBYTE(TICKS));
+    outportb(PIT0_TMR0, HIBYTE(TICKS));
+-->
+<li>
+This exercise presumes you have already completed the previous
+exercises. The objective of this exercise is to practice how to
+program to use the timer interrupt events.
+<p>
+<li>
+In the real lab (RVR2001), copy the demo to run it. First enter shell command
+to copy something in <a href=lab4stuff>Lab 4 Stuff</a>:<pre>
+<b>cp ~changw/html/159/0/lab4stuff/Demo.dli  .</b></pre>
+(note the dot symbol at the end) and issue the flash command to
+load it and run it. (See from the class front page, in the project
+phase table, about how to use flash.) If in the virtual machine
+Ubuntu terminal shell, use "scp" command instead of course:<pre>
+<b>scp (your ECS login name)@atoz.ecs.csus.edu:~changw/html/159/0/lab4stuff/Demo.dli  .</b></pre>
+<p>
+<li>
+Write your own code following class lectures and this:
+<a href=lab4stuff/big.png><b>pseudo code image</b></a>.
+Compile into <i>MyOS.dli</i>, <i>flash</i> it in, and run it under GDB.
+<ol type=a>
+<li>The timer-driven routine should output your name, character by character.
+<li>The output sequence is at every 3/4 seconds one character is shown.
+<li>The output location is at the center of the screen on the target PC.
+<li>After the full name is shown, it then erases it and restart.
+</ol>
+<p>
+<li>
+See "<a href=lab4stuff/example.c><b>example.c</b></a>" which shows
+a few useful given SPEDE I/O functions you can use.
+<p>
+<li>
+After getting it to work as described above, submit only the
+source/text files you've typed in: <b>main.c, handlers.c, events.h,
+events.S, and spede.h</b>. Locate the subdirectory named "phase0" in
+the dropbox on SAMBA host Voyager, and look into it for be a designated
+folder under your name. If you don't find it, create it with command
+<i>mkdir</i> yourself.
+<p>

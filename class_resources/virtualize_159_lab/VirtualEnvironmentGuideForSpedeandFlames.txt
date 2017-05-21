@@ -1,0 +1,113 @@
+Setting up a virtual environment for SPEDE and FLAMES for CpE 159/CSc 159 assignments.
+
+Requirements:
+	x86-based (or AMD64-based) PC (Windows or Mac), the host machine.
+	This virtual lab uses around ~4.5GB of disk space on the host machine.
+
+Downloads:
+	Oracle's VirtualBox (for Mac or Windows) 
+		https://www.virtualbox.org/wiki/Downloads
+	
+	Ubuntu Linux disk image x86 only (not AMD64) 
+		Version 12.04.5 (or 12.x) LTS is preferred
+		http://www.ubuntu.com/download/alternative-downloads
+	
+	FLAMES.OVA (DOS BOX with FLAMES preconfigured)
+		https://drive.google.com/folderview?id=0Bxey6BVAiq7kM1ViSjNEUXZWN3c&usp=sharing
+		(Credits to Aaron Diab for providing this file)
+
+Install and configure Linux and SPEDE:
+	Run VirtualBox and create a new Ubuntu virtual machine and use the Ubuntu.img as your install disk:
+		From the VirtualBox menu: Machine -> New...		
+		Optional: Install VirtualBox drivers (Devices->Insert Guest Additions CD Image...).
+
+	Copy the SPEDE installation files to your Ubuntu VM using the Terminal:
+		scp -r YOUR_ECS_USER_NAME@athena.ecs.csus.edu:~spede2/easy_install ~/Downloads/
+
+	Create /home/project/spede2/: 
+		sudo mkdir -p /home/project/spede2/
+
+	Copy Target-i386.tgz file to /home/project/spede2:
+		sudo cp ~/Downloads/easy_install/Target-i386.tgz /home/project/spede2/
+
+	Decompress the file:
+		sudo tar -zxf Target-i386.tgz
+
+	Verify you have the folder Target-i386 in /home/project/spede2/:
+		test -d /home/project/spede2/Target-i386 && echo "Yes" || echo "No"
+		
+	Copy the folder Target-i386 to /gaia/home/project/spede2: 
+		sudo mkdir -p /gaia/home/project/spede2/
+		sudo cp -r /home/project/spede2/Target-i386 /gaia/home/project/spede2
+
+	Install vim:
+		sudo apt-get install vim
+
+	Add the binary paths to the SPEDE commands:
+	Add these lines to the end of your ~/.bashrc file:
+		export PATH=''/home/project/spede2/Target-i386/i686/gnu/bin:$PATH''
+		export PATH=''/home/project/spede2/Target-i386/i686/tools/bin:$PATH''
+
+	Now to enable the serial port connection at boot-up:
+	Add this line before the statement ???exit 0??? in /etc/rc.local file:
+		chmod 666 /dev/ttyS0
+
+	Install gawk:
+		sudo apt-get install gawk
+	
+    Congrats, your Ubuntu Linux is properly setup!
+
+Import and configure FLAMES.OVA DOS-BOX virtual machine.
+	Import FLAMES.OVA (File->Import Appliance...):
+		Select FLAMES.OVA and complete the importing process.
+
+	Pull up the flames settings (Machine->Settings).
+
+	Select Ports tab, then Serial Ports tab and then Port 1 tab. 
+	   	Config Settings are:
+		   Check Enable Serial Port checkbox. 
+		   Port Number: COM1.
+		   Port Mode: Host Pipe.
+	   	   UNCHECK Create Pipe checkbox.
+		   Port/File Path: 
+			The pipe name must be in the format:
+				Windows: \\.\pipe\<name>
+				Mac: /Users/*user name here*/<name>
+			where <name> should identify the virtual machine but may be freely chosen,
+			use serialPortPipe as an example.
+      
+Configure Ubuntu virtual machine:
+	The next steps require the Ubuntu VM not to be running. 
+	Pull up the Ubuntu VM settings (Machine->Settings).
+
+	Select Ports tab, then select Serial Ports tab and then Port 1 tab. 
+		Config Settings are:
+		   Check Enable Serial Port. 
+		   Port Number: COM1.
+		   Port Mode: Host Pipe.
+		   Check the Create Pipe check box.
+		   Port/File Path: Must match the same path as set in flames virtual machine above.
+
+Congrats, you have fully configured a working virtual lab!
+
+Starting Procedure:
+	Always run the Ubuntu Linux virtual machine first, then run the FLAMES virtual machine next.
+	An error will appear saying a pipe does not exist if FLAMES is run first.
+	You can always start/restart/shutdown the FLAMES box at any time after Ubuntu Linux is started.
+ 
+Compile your sources and download a .dli file to the target machine.
+	Here are some commands you can use to get this done:
+		spede-mkmf (creates a makefile from scratch)
+		make clean
+		make
+		flash MyOS.dli
+			Command within flash:
+			download (or d)
+			make (or make clean)
+			gdb
+			flint
+			Commands within flint:
+				After downloading the file, type g and hit return to execute your OS.
+
+Raymond has instructions to get a virtual serial port to work with the Oracle VM VirtualBox. Screen picture. 
+	http://athena.ecs.csus.edu/~changw/159/VMcom2.txt

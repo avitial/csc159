@@ -1,0 +1,111 @@
+<table width=100%>
+<tr><td>
+<b>Sample Exam Questions</b> Spring, 2017<br>
+<td align=right>
+<small><i>CpE/CSc 159 Operating System Pragmatics<br>
+</small></i>
+</table><pre><font size=+1>
+
+<b>All questions should be answered based on project phases and lectures</b>
+
+<b>I. True/False</b>
+
+1.  _T_  F   The functions in services.c is to pass/receive information between a
+             process and the kernel, not actually performing any kernel services.
+             (How is a "system service call" done?)
+
+2.  _T_  F   To handle an IRQ event, as well as the execution of "int 0x??"
+             instruction (in a service call), require fetching a jump point for new
+             CPU instructions.
+
+3.  _T_  F   (Continued.) Jump points are fretched from the IDT.
+
+4.   T  _F_  (Continued.) The handling always needs an interrupt dismissal (by
+             using function outportb).
+
+5.   T  _F_  Since IRQ-0 has the highest priority for hardware interrupts, the
+             TimerEventHandler will be executed even when the CPU is currently
+             running the code in the handlers.c. (Why/why not?)
+
+6.  _T_  F   The kernel execution can be regarded as a big <i>critical</i> section
+             during which any new interrupts are never acknowledged, nor serviced.
+
+7.   T  _F_  A SemPost() call may block the running process.
+
+8.   T  _F_  The IDT has 200 entries and we have used 5 entries so far.
+
+9.   T  _F_  (Continued.) We set IDT entries via our "SetEntry()" function.
+
+10. _T_  F   (Continued) With different code addresses from source file "events.S."
+
+<b>II. Multiple Choice</b>
+
+1. ( B ) While the instructions are being fetched and executed from within
+        a function of "services.c," the CPU stack pointer would be pointing:
+        A. in the kernel stack
+        B. in the process stack
+        C. first in the process stack, then in the kernel stack
+        D. first in the process stack, then in the kernel stack,
+           then back in the process stack
+        E. first in the kernel stack, then in the process stack,
+           then back in the kernel stack
+
+2. ( D ) What happens when a process first calls "Sleep(-1)" and later
+        your OS checks for waking up with comparison of "... == ..."
+        for the system time and waking time?
+        A. the process will be in the available state forever
+        B. the process will be in the ready state forever
+        C. the process will be in the run state forever
+        D. the process will be in the sleep state forever
+        E. the process will be in the wait state forever
+
+3. ( B ) What would happen if a process calls "Sleep(0)" instead,
+        yet your OS checks for waking up first before increments
+        the system time occurred?
+        A. the process will be in the available state
+        B. the process will be in the ready state
+        C. the process will be in the run state
+        D. the process will be in the sleep state
+        E. the process will be in the wait state
+
+4. ( C ) The kernel service code for the semaphore-wait has no use of:
+        A. a semaphore ID
+        B. setting some number to 0
+        C. dequeuing from a wait queue
+        D. changing a process' state to WAIT
+        E. downcounting the passes
+
+5. ( E ) The <i>trapframe pointer</i> Kernel() gets as its argument, is saved
+        at the beginning into a PCB. This is because:
+        A. a process was interrupted at its runtime unscheduled, the content
+           of the trapframe varies.
+        B. the CPU registers vary when an interrupt occurs, the PCB of the
+           interrupted process must be updated with new CPU registers.
+        C. the processs is interrupted unscheduled during runtime, the PCB
+           location varies.
+        D. the stack pointer must return to the original location when the
+           process was created.
+        E. the stack pointer might be pointing at a different location from
+           where the previous trapframe was when an interrupt occurred, so,
+           where the new trapframe was built may vary.
+
+6. ( 2 ) How many kernel services we have so far may "stop" a process? (The type
+        of kernel service that may alter the running process ID to "none.")
+        A. 1   B. 2   C. 3   D. 4   E. 5
+
+<b>III. Short Answers</b>
+
+1. Write out a procedure description to introduce a new kernel service X.
+
+2. About the exception such as an invalid argument used in the call "Sleep(-1),"
+   where would be the proper place to handling this?
+
+3. Without checking for the above exception, what can it affect in the kernel
+   code and service logic?
+
+4. Consider the way our OS uses its data structure as resources, what can be
+   the possible places in our kernel code that would cause resource leaks
+   if not coded correctly.
+
+5. Answer review questions given at the of the webpage of each project phase.
+</pre>

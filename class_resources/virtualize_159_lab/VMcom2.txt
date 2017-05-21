@@ -1,0 +1,43 @@
+Steps to setup a terminal for SPEDE in VirtualBox
+-------------------------------------------------
+
+1. Go to Settings -> Serial Ports in flames VM
+
+2. Enable Port 2 and set same options as in Port 1,
+    but make sure you have a different Port/File Path
+    for it.
+
+3. Go to Settings -> Serial Ports in spede VM
+
+4. Enable Port 2 in the same way Port 1 is enabled,
+    but point it to the file path you set in step 2.
+
+5. Install minicom in the Ubuntu spede VM
+    sudo apt-get install minicom
+
+6. Start minicom as the root user
+    sudo minicom
+
+7. Enter minicom configuration and find the
+    "cOnfigure Minicom..O" option.
+
+8. Once there, enter the "Serial port setup" screen
+
+9. Set the value for "Serial Device" to the serial port (e.g. COM2 is  /dev/ttyS1)
+
+10. Save your configuration and restart using the
+    "Quit with no reset." option from the main screen
+
+11. Start minicom again as root user. Your main screen should look like this (note Port):
+
+    Welcome to minicom 2.6.2
+
+    OPTIONS: I18n
+    Compiled on Feb  8 2013, 06:27:51.
+    Port /dev/ttyS1, 03:01:12
+
+    Press CTRL-A Z for help on special keys
+
+12. Start running your OS as you normally would. You should see the terminal login (see attached picture).
+
+-Raymond Rivera     11/20/2013

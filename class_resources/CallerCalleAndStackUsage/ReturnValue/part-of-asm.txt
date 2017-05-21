@@ -1,0 +1,128 @@
+	.file	"sample1.c"
+a long list of stabs lines removed...
+.stabs "u_char:t11",128,0,75,0
+.stabs "u_short:t9",128,0,76,0
+.stabs "u_int:t4",128,0,77,0
+.stabs "u_int32_t:t4",128,0,78,0
+.stabs "u_int16_t:t4",128,0,79,0
+.stabs "int32_t:t1",128,0,81,0
+.stabs "uint8_t:t11",128,0,83,0
+.stabs "uint16_t:t9",128,0,84,0
+.stabs "uint32_t:t4",128,0,85,0
+.stabs "n_short:t9",128,0,87,0
+.stabs "n_time:t4",128,0,88,0
+.stabs "n_long:t4",128,0,89,0
+
+.section	.rodata
+.LC0:
+	.string	"x is %d\n"
+.LC1:
+	.string	"y is %d\n"
+.text
+	.align 4
+.stabs "DispMsg:F1",36,0,13,DispMsg
+.stabs "x:p1",160,0,12,8
+.stabs "y:p1",160,0,12,12
+.globl DispMsg
+	.type	 DispMsg,@function
+DispMsg:
+.stabn 68,0,13,.LM1-DispMsg
+.LM1:
+	pushl %ebp
+	movl %esp,%ebp
+	subl $4,%esp
+.stabn 68,0,14,.LM2-DispMsg
+.LM2:
+.LBB2:
+	movl $5,-4(%ebp)   <-- z = 5;
+.stabn 68,0,16,.LM3-DispMsg
+.LM3:
+	movl 8(%ebp),%eax
+	pushl %eax
+	pushl $.LC0
+	call printf
+	addl $8,%esp
+.stabn 68,0,17,.LM4-DispMsg
+.LM4:
+	movl 12(%ebp),%eax
+	pushl %eax
+	pushl $.LC1
+	call printf
+	addl $8,%esp
+.stabn 68,0,19,.LM5-DispMsg
+.LM5:
+	movl -4(%ebp),%eax  <-- return z via EAX
+	jmp .L1
+	.align 4
+.stabn 68,0,20,.LM6-DispMsg
+.LM6:
+.LBE2:
+.stabn 68,0,20,.LM7-DispMsg
+.LM7:
+.L1:
+	leave
+	ret
+.Lfe1:
+	.size	 DispMsg,.Lfe1-DispMsg
+.stabs "z:1",128,0,14,-4
+.stabn 192,0,0,.LBB2-DispMsg
+.stabn 224,0,0,.LBE2-DispMsg
+.section	.rodata
+.LC2:
+	.string	"d is %d\n"
+.text
+	.align 4
+.stabs "main:F19",36,0,23,main
+.globl main
+	.type	 main,@function
+main:
+.stabn 68,0,23,.LM8-main
+.LM8:
+	pushl %ebp
+	movl %esp,%ebp
+	subl $12,%esp
+.stabn 68,0,24,.LM9-main
+.LM9:
+.LBB3:
+.stabn 68,0,26,.LM10-main
+.LM10:
+	movl $1,-4(%ebp)
+.stabn 68,0,27,.LM11-main
+.LM11:
+	movl $2,-8(%ebp)
+.stabn 68,0,28,.LM12-main
+.LM12:
+	movl -8(%ebp),%eax
+	pushl %eax
+	movl -4(%ebp),%eax
+	pushl %eax
+	call DispMsg
+	addl $8,%esp
+	movl %eax,%eax  <-- returned by DispMsg in EAX, moved it to EAX (kind of redundant)
+	movl %eax,-12(%ebp)
+.stabn 68,0,29,.LM13-main
+.LM13:
+	movl -12(%ebp),%eax
+	pushl %eax
+	pushl $.LC2
+	call printf
+	addl $8,%esp
+.stabn 68,0,30,.LM14-main
+.LM14:
+.LBE3:
+.stabn 68,0,30,.LM15-main
+.LM15:
+.L2:
+	leave
+	ret
+.Lfe2:
+	.size	 main,.Lfe2-main
+.stabs "a:1",128,0,24,-4
+.stabs "b:1",128,0,24,-8
+.stabs "c:1",128,0,24,-12
+.stabn 192,0,0,.LBB3-main
+.stabn 224,0,0,.LBE3-main
+	.text
+	.stabs "",100,0,0,.Letext
+.Letext:
+	.ident	"GCC: (GNU) 2.7.2.3"

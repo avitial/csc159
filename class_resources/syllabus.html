@@ -1,0 +1,316 @@
+<HTML><HEAD>
+<meta name="robots" content="noindex">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<TITLE>CpE/CSc 159 Operating System Pragmatics -- Syllabus</TITLE>
+</HEAD><BODY><SMALL>
+<i>Sacramento State<br>
+Computer Engineering/Computer Science<br>
+Spring 2017
+</i></SMALL>
+
+<p>
+<h2>CpE/CSc 159 Operating System Pragmatics -- Syllabus</h2>
+<p>
+
+<H3>Course Description</h3>
+<blockquote>
+Application of operating system principles to the design and
+implementation of a multitasking operating system. You will
+write an operating system for a computer platform. Topics include:
+scheduling of processes, control and allocation of computer
+resources, and user interfacing. 3 units. Prerequisite: CSc 139.
+</blockquote>
+
+<H3>Course Objectives</h3>
+<blockquote>
+<li>
+Develop thorough understanding of the design and implementation of
+a operating system (the kernel level, mostly)
+<li>
+Provide you with practical experience of coding a working OS kernel
+and other OS components
+<li>
+Present software development techniques: source code control, team work,
+effective use of development tools
+</blockquote>
+
+<H3>Course Outcomes</h3>
+<blockquote>
+<li>
+You will follow a design guideline and write code to build an OS
+kernel and associated system utilities.
+<li>
+You will learn to develop large-scale software in a team environment
+and apply software engineering skills to manage source code development,
+conduct testing, and schedule regression.
+<li>
+You will be able to relate security and vulnerability issues into designs and implement solutions.
+<li>
+You will learn tools for embedded-system development.
+</blockquote>
+
+<H3>Time, Place, and Instructor</h3>
+
+<blockquote>
+Please visit URL: <a href=../TandP.shtml>http://ecs.csus.edu/~changw/TandP.shtml</a>
+</blockquote>
+<p>
+
+<h3>Textbook</h3>
+<ul>
+<li><cite>Building Your First Operating System</cite>,
+    Brian Witt and John Clevenger, v0.2.4, Jan. 2010, CSUS Foundation
+<li><cite>SPEDE Lab Manual</cite>, John Clevenger, et al., v3.4.1, Jan. 2010,
+    CSUS Foundation
+</ul>
+<p>
+
+<h3>Reference Material</h3>
+<blockquote>
+The prerequisites describe more than just classes you have attended, but
+knowledge you <em>must have</em>. Your class notes and textbooks from these
+classes will be helpful. Your CSc139 textbook is very important, and
+the CpE185 book can also come handy. 
+<UL>
+<li><cite>The C Programming Language</cite>, Kernighan and Ritchie
+<li><CITE>Debugging with GDB</cite>, Stallman &amp; Pesch,
+Free Software Foundation (get it free online!)
+<li><CITE>UNIX for Programmers and Users</cite>, Graham Glass, Prentice-Hall
+<li><CITE>Intel Architecture Software Developer Manuals (i386 Assembly Language)</cite>, Intel
+</ul>
+</blockquote>
+
+<h3>Course Overview</h3>
+<blockquote>
+Modern operating systems (OS) allow CPUs and other resources to be shared
+among many users (and processes) concurrently. The OS provides resource
+management and controls among processes to guarantee the correctness of
+operation.
+This course is designed to give computer science and computer engineering
+students an in-depth exposure to the OS operation through extensive
+implementation of the OS structures.
+<P>
+This course is intended to provide you with practical, hands-on
+experience in the details of OS design and implementation.
+The various OS principles covered in CSc139 are considered from the
+viewpoint of actual code implementation on computers.
+After spending covering the architectural details of the target machine,
+you will start to write interrupt-handler code for various type of
+interrupts. Special emphasis will be given to the implementation of
+thread process creation, dispatching code, synchronization, and to the
+development of a complete set of OS kernel services capable of supporting
+typical embedded-system applications.
+You will implement several client/server-type processes running on the
+target machine using inter-process communication (IPC) mechanisms provided by
+their kernels. Kernel threads will provide services to the upper layers of the
+system.
+<P>
+Attention will be given to the development and debugging techniques typical
+in embedded/remote-target computer systems as well as stand-alone general-purpose machines.
+You will download and debug OS routines from a separate workstation.
+<P>
+Emphasis will be placed on the design, implementation techniques, and
+tradeoffs typically in the development of modern operating systems, from
+the viewpoint of both general-purpose time-sharing systems and ubiquitous
+embedded systems. <i>Discussion will include essentials and advanced issues
+in the building of real-time systems, embedded systems, and multiprocessor
+systems</i>.
+<P>
+Operating systems are complex, and, by their nature, are very sensitive to
+the orders of events. Writing code is a form of communication both to yourself
+and other programmers, as well as to the actual CPU that executes the compiled
+code. You are expected to demonstrate organization and documentation
+skills in their programming assignments.
+<em>which is important since each assignment builds on the previous ones.</em>
+Comments serve to communicate critical issues and detail of possible hazards
+in the code.
+<P>
+After completing this course, you will have gained a comprehensive
+understanding of the organizational structure of modern operating-system code.
+They will have achieved considerable practical experience with implementation
+methods and tools similar to those used in computer systems development in
+the industry.
+</blockquote>
+
+<H3>Prerequisites by Topic</H3>
+
+<UL>
+  <LI>Programming proficiency in ANSI C and i386 assembly language
+  <LI>Experience on using UNIX shells
+  <LI>Data structures -- arrays and queues
+  <LI>Digital Logic -- combinational and sequential circuits
+  <LI>Computer Organization -- CPU components, memory organization,
+      bus structure, CPU instruction cycles, interrupt cycles
+  <LI>I/O Programming -- bitwise polling and writing
+  <LI>OS fundamentals -- process runtime concurrency and synchronization;
+      thread and process runtime environments; principles of process
+      scheduling, resource deadlocks, and virtual memory allocation
+  <LI>Searching, sorting, and storage algorithms
+  <LI>Interrupt-driven programming
+
+</ul>
+
+<h3>Course Outline</h3>
+
+<center><table border=2 width=90% cellpadding=3>
+<tr>
+   <th>&nbsp;Week&nbsp;</th><th>Topics</th><th>Assignments</th>
+</tr>
+<tr>
+   <td align=center>1</td>
+   <td>Development Environment and Tools: <i>SPEDE, GDB, Unix, Vi, and Timer Interrupt</i></td>
+   <td>Lab Tool Exercises</td>
+</tr>
+<tr>
+   <td align=center>1-2</td>
+   <td>Target Machine Architecture, Interrupt Handling, Context Switching
+       and handlers</td>
+   <td>Timer Lab, Timer-Driven Kernel</td>
+</tr>
+<tr>
+   <td align=center>3</td>
+   <td>Kernel Organization and Structure, and Process Scheduling</td>
+   <td>Basic Process Scheduling: Round Robin (FIFO/FCFS)</td>
+</tr>
+<tr>
+   <td align=center>4</td>
+   <td>Processes and Trapframes</td>
+   <td>Process System Calls and Kernel Services</td>
+</tr>
+<tr>
+   <td align=center>5</td>
+   <td>Device Drivers: One-Way Data Communication, Busy-Wait</td>
+   <td>Character Device and Print Spooling</td>
+</tr>
+<tr>
+   <td align=center>6-7</td>
+   <td>Device Drivers: Two-Way Data Communication, Interrupt-Driven </td>
+   <td>Teletype (TTY) Terminal and User Shells</td>
+</tr>
+<tr>
+   <td align=center>8-9</td>
+   <td>IPC: Semaphores and Message Passing</td>
+   <td>IPC Services</td>
+</tr>
+<tr>
+   <td align=center>10</td>
+   <td>Intro to File Systems</td>
+   <td>File I/O Shell Commands</td>
+</tr>
+<tr>
+   <td align=center>11-12</td>
+   <td>Process Runtime Environments and Shell Commands</td>
+   <td>Shell Commands and Memory Management</td>
+</tr>
+<tr>
+   <td align=center>13-14</td>
+   <td>Virtual Address Translation, and Virtual Memory Management</td>
+   <td>MMU Programming and Runtime Space Management</td>
+</tr>
+<tr>
+   <td align=center>15</td>
+   <td>Demand Paging</td>
+   <td>Page Faults and Recovery</td>
+</tr>
+
+</table></center>
+
+<H3>Course Grading</H3>
+<blockquote>
+The semester letter grade will be based on the distribution curve, derived
+from the total points earned from all project assignments (50%) and written
+exams (50%) -- midterm and final exams.
+<p>
+This class requires a lot of time from you. The program you create for
+this class will probably be the largest computer program you've written
+here at school. Additionally, each assignment is the starting point for
+the next assignment, which is the starting point for even the latter
+assignment, etc. So, do not get behind in the assignments.
+<P>
+Programming assignments must be turned in electronicly (will be tested
+and asked for demonstration). All late assignments are subject to a fixed
+<b>10%</b> reduction each day (time stamps are given by the source code
+control system on the server host. 10% means 1 point if 10 points based.)
+<P>
+Please inform yourself of the Department-College-University policies
+on dropping courses. An "incomplete" grade can only be given due to
+unusual circumstances caused by reasons <em>beyond your own control</em>.
+This normally means a letter from your medical doctor or employer, on
+appropriate letterhead, stating that you are unable to complete the
+semester attendances and assignments due to <em>illness or workload</em>.
+</blockquote>
+
+<H3>Project Grading Policy</h3>
+
+<blockquote>
+The programming projects will be graded with the following policy.
+<br>
+Grading is based on a 10-point scale
+<ul>
+   <li>5 points - meeting functional requirements
+   <li>5 points - correct source code (functional requirements first):
+   <ul>
+      <li>0.5 point, a minor error (compiler warnings, repeated initializations, etc.)
+      <li>1 point, a major error (array index may go over, register names swapped, etc.)
+   </ul>
+
+   <li>The typical 159 problems:
+   <ul>
+      <li>fail to generate target OS during compile
+      <li>fail to start runtime
+      <li>fail to sustain runtime
+      <li>fail to enter the debug mode as required
+      <li>fail to proceed to exit as required
+      <li>runtime exceptions/errors such as segfaults, SPEDE panics
+      <li>runtime causes reboots
+      <li>incorrect algorithms (may likely cause crash or OS malfunction)
+      <li>OS features or data structures implemented incorrectly
+      <li>incorrect semantic logic in code modularization
+      <li>certain runtime requirements not met
+      <li>(Surely many little things may also go wrong. Best re-study, re-check.)
+   </ul>
+</ul>
+
+</blockquote>
+
+<H3>Ethics</H3>
+<blockquote>
+Cheating and plagiarism are dealt with strictly in this class. All assignments
+require your own work during the current semester. It is OK to discuss assignments
+with others for the purpose of understanding the requirements but never about the
+coding.
+All work on team assignments for the class is to be done solely by yourself or
+your team member unless explicitly stated otherwise. This includes problem analysis,
+solution design, coding and testing.
+When you or your team submits work, it constitutes a contractual agreement
+that the work is solely the product of the named person or team members.
+Further, submitted work carries with it an agreement that the instructors can
+quiz you on the detail of the work for verification.
+<P>
+If anyone attempts to raise their grade through unethical means such
+as working with or copying the work of others, it is in essence may cause
+a lowering of others' grades. Further, anyone who <EM>gives</EM> such
+help is equally guilty of unethical behavior because they failed to protect
+the proprietariness of the information.
+<P>
+The 159 policy on ethics is succinctly stated in the University's Policy
+Manual: <B>Cheating is the ground for dismissal from the University.</b>
+</blockquote>
+
+<H3>Important Notes About the Course</H3>
+<blockquote>
+Any adjustments to this syllabus will be announced in class. <EM>Class
+attendance is very important!</EM> You are responsible for all materials
+mentioned in class sessions. Class notes may not be mass produced.
+<P>
+There is a lot of code produced for this course. Each team will spend a
+substantial amount of time in the lab through out the semester. Your team
+is responsible for scheduling time together to work through the problems.
+<EM>Since each project phase is to be built on the previous, do not get
+behind!</EM>
+The code of your program should be clear and well commented. Algorithms
+and special coding practices should be explained.
+<P>
+
+</blockquote>
+

@@ -1,0 +1,98 @@
+<HTML>
+<HEAD>
+<TITLE>CpE/CSc 159 Lab Tool Exercises</TITLE>
+</HEAD>
+<BODY TEXT="black" LINK="black" VLINK="black" ALINK="#red" BGCOLOR="white">
+
+<P><EM>
+Sacramento State<BR>
+Computer Engineering/Computer Science<BR>
+CpE/CSc 159 Operating System Pragmatics<br>
+Instructor: W. Chang
+</EM></P>
+
+<h2>Dev Tools and Timer Event</h2>
+
+<p>
+Apply an ECS computer account from http://www.ecs.csus.edu if you don't
+have one.
+<br>
+The objective of these exercises is to make sure you are familiar with the
+procedures for compiling, linking, downloading, executing and debugging
+programs in the 159 OS development environment.
+<br>
+This tool-usage exercise must be done individually.
+This is also the period to consider and get to form a team.
+
+<p>
+
+<b>Lab Development Tools and Timer Event</b>
+<blockquote>
+<li>
+<a href=../../class_docs/UnixVi.html>Lab Exercise 1</a>
+-- Refresh Your Unix and Vi Skills</a>
+You are expected to be familiar with basic Linux commands including how
+to login, create, and edit source code, and set executable search "path".
+If not, you should practice Linux shell commands.
+<li>
+<a href=lab2.html>Lab Exercise 2</a>
+-- SPEDE/FLASH/FLAMES (Lab Manual, Chapter 2)
+<li>
+<a href=lab3.html>Lab Exercise 3</a>
+-- GNU Debugger (Lab Manual, Chapter 5)
+<li>
+<a href=lab4.html>Lab Exercise 4</a>
+-- Timer Event (Textbook Sections 4.10-4.11)
+<p>
+<a href=TextCh3FlashAndTimerDiagram.pdf>Text Pages about Using Flash and Timer Diagram</a>
+<br>
+<a href=ManualCh8IRQandIO.pdf>Manual Pages about IRQ and I/O Maps</a>
+<p>
+</blockquote>
+You should have readily obtained an ECS computer account (login name).
+For submission of assignments.
+
+use the SAMBA file-transfer client to connect to host Voyager where there's
+a dropbox desination for you:<pre>
+   While being <i>in the directory</i> where your have files ready to submit, issue shell command:
+   <b>smbclient -U ECS\\<i>your ECS login name</i> //voyager.ecs.csus.edu/faculty</b>
+   (<i>ECS\\ may not be needed from within the ECS subnet.</i>)
+   smb: \> <b>help</b>
+   smb: \> <b>help prompt</b>
+   smb: \> <b>cd changw/dropbox/159/phase0</b>
+   smb: changw\dropbox\159\phase0\> <b>dir</b>
+   (<i>If not seeing your name, create one:</i> <b>mkdir</i> <i>your name</i></b>
+   (<i>Name format: lastname,firstname, no space between.</i>)
+   smb: changw\dropbox\159\phase0\> <b>cd <i>your name</i></b>
+   smb: changw\dropbox\159\phase0\<i>your name</i>\> <b>put typescript</b>
+   (<i>Typescript is the file you generated from lab 3.</i>)
+   smb: changw\dropbox\159\phase0\<i>your name</i>\> <b>dir</b> <i>Check if it is in.</i>
+   smb: changw\dropbox\159\phase0\<i>your name</i>\> <b>quit</b> <i>Back to shell.</i>
+   <i>Issue the SAMBA client command again (smbclient...) and navigate into the same designated folder:</i>
+   smb: \> <b>cd changw/dropbox/159/phase0/<i>your name</i></b>
+   smb: changw\dropbox\159\phase0\<i>your name</i>\> <b>prompt</b> <i>Turn off prompting.</i>
+   smb: changw\dropbox\159\phase0\<i>your name</i>\> <b>mput *.c *.h *.S</b>
+   smb: changw\dropbox\159\phase0\<i>your name</i>\> <b>dir</b> <i>Check if they are in.</i>
+   smb: changw\dropbox\159\phase0\<i>your name</i>\> <b>quit</b> <i>Back to shell.</i>
+</pre>
+
+You must work on these exercises and submit (individually). Get acquainted
+with others to form a team. Once you have decided a team name (naming
+convention is the same as that of naming a variable in a program, no spaces
+or special symbols except underscores, and case sensitive), Email the TEAM
+NAME as well as the members' names to the instructor. Each solo team must
+also choose a team name.
+<p>
+Starting phase 1, Always put your team and member names at the beginning
+of your "main.c" code, and specify the project-phase number.
+<p>
+The 'dropbox' only allows a file to be created/written once.
+It cannot be renamed/removed once dropped (even for empty files or folders
+accidentally created).
+To resubmit, issue shell commands to make a new folder using a name
+like "V2,", "V3," etc. (still under your team folder originally designated
+to submit code of that phase), and then "cd" into it to try again.
+Grading will only be done on the folder of the latest version. Any
+submission after the due date will incur late penalty and void all previous
+versions of submission for that phase.
+

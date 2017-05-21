@@ -1,0 +1,111 @@
+<pre>
+With your ECS computer account (username and password), use Windows
+app <b>putty</b> or Mac app <b>terminal</b> to login linux hosts
+<b>atoz</b> or <b>sp1</b> or <b>sp2</b> or <b>sp3</b>. (You may need
+to first get into titan or athena if from outside of ECS network.)
+
+<font size=+1><b>USEFUL UNIX/LINUX SHELL COMMANDS:</b></font>
+   <b>pwd</b>  print current working directory
+   <b>ll</b>  long listing of directory content
+   <b>ls -l</b>  long listing of directory content
+   <b>ls -lF</b>  long listing of directory content
+   <b>mkdir 60</b>  make a new directory 60
+   <b>cd 60</b>  change current directory to 60
+   <b>cd ..</b>  change to upper directory
+   <b>cat file</b>  display text content in file
+   <b>more/less file</b>  like cat, only paginated
+   <b>file *</b>  check file types of all files
+   <b>wc file1.c</b>  word count the file1.c
+   <b>wc *</b>  word count all files in directory
+   <b>wc *.c</b>  word count all .c files
+   <b>grep x1 *.c</b>  find word x1 in all .c files
+   <b>grep -n x1 *.c</b>  like above, show line numbers when found
+   <b>cp file1 file2</b>  copy file1 to a new file2
+   <b>cp ../file1 .</b>  copy file1 from directory above to here
+   <b>mv file1 file2</b>  rename file1 to file2
+   <b>mv ../file1 .</b>  move file1 from directory above to here
+   <b>cmp file1 file2</b>  compare file1 with file2, show differences
+   <b>diff file1 file2</b>  like cmp except shows more info
+   <b>rm file1</b>  remove file1
+   <b>rmdir test1</b>  remove directory test1
+   <b>cal 2012</b>  calendar 2012 AD
+   <b>logout or exit</b>  quit the login session
+   <b>date</b>  show today's date and current time
+   <b>chmod</b>  change file access mode bits
+   <b>w who finger</b>  who are on this host and what they're doing
+   <b>talk <i>username</i></b>  chat with username (splits display)
+   <b>write <i>username</i></b>  write msg to username (return plus ctrl+d to end)
+   <b>ps -u</b>  show all user's running Process ID's
+   <b>ps -l</b>  show processes (including Process ID Parent Process ID)
+   <b>!!</b>  repeat previous command
+   <b>!vi</b>  repeat previous command that started with vi
+   <b>history</b>  history of commands given
+   <b>!3</b>  repeat command number 3 from history
+   <b>(press tab key)</b>  auto-fill filename, e.g., vi lab1(then tab)
+   <b>(press up/down arrows)</b>  bring back previous commands
+   <b>jobs</b>  show if any suspended (or background) jobs
+   <b>fg</b>  bring a suspended (or background) job to foreground (run)
+   <b>head lab1.c</b> or <b>head -20 lab1.c</b>  list 1st 10 or 20 lines of code
+   <b>tail lab1.c</b> or <b>tail -20 lab1.c</b>  list last 10 or 20 lines of code
+   <b>which vi</b>  tells you where the vi executable really is
+   <b>logout</b> or <b>exit</b>  log off
+   <b>a.out > out.txt</b>  catches output to a file
+   <b>a.out < in.txt</b>  use in.txt for intput
+   <b>a.out < in.txt > out.txt</b>  (combine the above two)
+   <b>cksum filename</b>  do a CRC check sum (against original for authenticity)
+   <b>ls -al | less</b>  directory listing (too long) 'piped' to 'less' for viewing
+   <b>a.out | less</b>  output of a.out 'piped' to 'less' for viewing
+   <b>ctrl+C</b>  break an infinite loop in a.out
+
+
+Use /bin/vi (not "vim" which is really not an "improvement"). So, issue
+shell command: <b>/bin/vi hello.s</b> starts editing text file hello.s.
+While in vi, always go back to the command mode (not staying in edit
+mode) by pressing <b>ESC</b> key or <b>Ctrl-[</b> which is also <b>ESC</b>
+but easier to reach. Remap your keyboard (on a Mac) to switch between the
+left CONTROL and CAPS-LOCK keys:
+
+<font size=+1><b>vi commands</b> (issued in ESC/command mode, not insert mode)</font>
+   <b>ESC or Ctrl-[</b> to return to escape/command mode
+   <b>a</b>         append from cursor what you want to type in
+   <b>i</b>         insert before cursor what you want to type in
+   <b>h 2h 3h</b>   move cursor left 1, 2, or 3 characters
+   <b>l 2l 3l</b>   move cursor right 1, 2, or 3 characters
+   <b>j 2j 3j</b>   move cursor down 1, 2, or 3 lines
+   <b>k 2k 3k</b>   move cursor up 1, 2, or 3 lines
+   <b>H</b>         move cursor to top line in display  
+   <b>M</b>         move cursor to middle line in display  
+   <b>L</b>         move cursor to bottom line in display  
+   <b>w 2w 3w</b>   move cursor to 1, 2, or 3 words down
+   <b>b 2b 3b</b>   move cursor back 1, 2, or 3 words up
+   <b>e 2e 3e</b>   like w except cursor stops at end of word (not beginning)
+   <b>r 2r 3r</b>   replace what's under the cursor with one new keystroke
+   <b>x 2x 3x</b>        delete 1, 2, or 3 characters (from cursor position)
+   <b>D</b>              delete from cursor to end of line (copied)
+   <b>dw d2w 2dw</b>     delete 1 or 2 words (from cursor position)
+   <b>dd d2d 2dd</b>     delete 1 or 2 lines (from cursor position, also copy)
+   <b>cw c2w 2cw</b>     change 1 or 2 words (from cursor position and append)
+   <b>yy y2y 2yy</b>     yank 1 or 2 lines (copy from cursor position)
+   <b>p</b>    put (yanked/deleted lines or partial line) below/after cursor
+   <b>P</b>    put (yanked/deleted lines or partial line) above/before cursor
+   <b>o</b>    open a new line below cursor (insert mode)
+   <b>O</b>    open a new line before cursor (insert mode)
+   <b>.</b>    repeat what was done previously (typing 3 lines, cw, d2d, p, etc.)
+   <b>u</b>    undo (cannot redo - can undo historically, but not redo)
+   <b>/ab13</b>     search forward for 'ab13' and cursor stops there if found
+   <b>?yz24</b>     search backward for 'yz24' and cursor stops there if found
+   <b>/</b>         search forward/next occurrence (the same given string)
+   <b>?</b>         search backward/previous occurrence (the same given string)
+   <b>Ctrl-l</b>    (lowercase L) refresh display (if scrambled)
+   <b>Ctrl-g</b>    show global status (at bottom)
+   <b>Ctrl-z</b>    suspend vi and go to the shell (shell command "fg" to return)
+
+   For file I/O first type <b>:</b> (to the colon prompt), then:
+   <b>(just press RETURN key)</b>  cursor returns into text area
+   <b>w</b>         (press return) write to named file at starting
+   <b>w test.c</b>  (press return) write new file test.c (w! ... to force overwrite)
+   <b>q</b>         (press return) quit vi (may warn if changed, but not saved)
+   <b>q!</b>        (press return) quit without saving (force quit)
+   <b>1,$ s/test/test2/g</b>  substitute all instances of 'test' to 'test2'
+   <b>1,$ !sort</b>   sort from line 1 to last line (ascending order)
+</pre>

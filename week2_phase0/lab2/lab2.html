@@ -1,0 +1,80 @@
+<h3>Lab Tools Exercise 2 - Using SPEDE</h3>
+
+<ol>
+<li>
+Read Chapters 1 and 2 in the 159 Lab Manual.
+<p>
+<li>
+Login to a Linux host in our OS Lab (RVR 2001) and change your "shell" to
+/bin/tcsh by entering the command <b>ypchsh</b>, enter your password,
+then enter <b>/bin/tcsh</b>. Logout.
+<p>
+<li>
+Re-login and include <b>~spede2/bin</b> into the search "path" of your shell.
+That is, edit the <b>.cshrc</b> file:
+<blockquote>
+   add <b>set path=($path ~spede2/bin)</b> as the last line in <b>.cshrc</b>.
+</blockquote>
+Execute this new .cshrc by: <b>source .cshrc</b>, or re-login, or issue a
+new terminal shell, and the new path definition is now active.
+<p>
+<li>Make a subdirectory: <b>mkdir lab1</b> and go into it: <b>cd lab1</b>.
+<p>
+<li>Edit/create (by using editor <b>/bin/vi</b>) sample.c by:
+<b>/bin/vi sample.c</b> as described in Chapter 2.
+<p>
+<li>
+Then run: <b>spede-mkmf -q</b><br>
+Which will suppress the excessive dialogue, "quiescent mode"
+to create a <em>Makefile</em>.
+<p>
+<li>
+Compile your code by entering: <b>make</b>, and it creates <b>MyOS.dli</b>.
+<p>
+<li>Download to the target PC: <b>flash MyOS.dli</b> at the shell prompt,
+and enter <b>d</b> or <b>download</b>; and you see the downloading progress.
+<p>
+<li>
+To execute after the download, first enter at the <b>Flash</b> prompt:
+<b>g</b> or <b>gdb</b> to get the <b>GDB</b> prompt.
+<p>
+<li>Enter <b>c</b> or <b>continue</b> at the <b>GDB</b> prompt, and the
+program runs.
+<p>
+<li>Verify that the expected output is produced: there should be one message
+on the UNIX workstation screen window and another on the target PC machine.
+<p>
+<li>
+To get back to the <b>Flash</b> prompt (first press <b>Control-C</b> if
+needed) enter <b>q</b> or <b>quit</b> to exit GDB and back to Flash.
+<p>
+<li>
+At the <b>Flash</b> prompt, command <b>make</b> can also be entered to
+recompile program code. So, you don't need to exit Flash. (If you do,
+enter <b>q</b> or <b>quit</b> to do that.)
+<p>
+<li>
+To generate an assembly output file from your <em>sample.c</em> file,
+use the command: <b>make sample.asm</b>.
+(<a href=../CallerCallee>The <b><i>caller-callee</i></b> stack</a>.)
+<p>
+<li>
+Use <b>less sample.asm</b> to view the assembly file and find the place
+in the assembly code where the statements of the main program body are
+performed. Make a note of which instructions do what.
+HINT: the main program starts by assigning the value 111, which is
+hexadecimal 006F, to a memory variable, followed by calls to a <b>printf()</b>
+subroutine and a <b>cons_printf()</b> subroutine, each of which is passed a
+set of parameters using (push and pop instructions) in the runtime <i>stack</i>.
+<p>
+<li>
+Enter <b>make help</b>. It shows a list of all the options which can be
+used with the <b>make</b> command on the current <i>Makefile</i>.
+Use the command <b>make clean</b> to clean up (delete) from the current
+working directory the intermediate compilation files other than code.
+<p>
+<li>
+Delete the Makefile completely if needed in order to regenerate it
+by <b>spede-mkmf -q</b> again as how you started.
+
+</ol>
