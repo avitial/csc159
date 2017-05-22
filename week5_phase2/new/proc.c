@@ -15,7 +15,7 @@ void Init(void) {
   while(1){  // forever loop
     cons_printf("1..");     // show on Target PC: "1.." (since Init has PID 1 as we know)
 
-    for(i=0; i<LOOP; i++){  // cause approx 1 second of delay
+    for(i=0; i<FAST_LOOP; i++){  // cause approx 1 second of delay
       asm("inb $0x80");     // delay .6 microsecond
     }
   }

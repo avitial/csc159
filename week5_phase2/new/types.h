@@ -4,6 +4,7 @@
 #define __TYPES_H__
 
 #define LOOP 1666666         // handly loop limit exec asm("inb $0x80");
+#define FAST_LOOP 166666     // handy loop limit for faster response on VM
 #define TIME_LIMIT 200       // max timer count, then rotate process
 #define PROC_NUM 20          // max number of processes
 #define Q_SIZE 20            // queuing capacity
