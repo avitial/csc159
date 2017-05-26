@@ -10,4 +10,3 @@ int DeQ(q_t *);
 void EnQ(int, q_t *);
 
 #endif
-

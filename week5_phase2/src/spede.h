@@ -7,9 +7,6 @@
 #include <spede/flames.h> // IO_DELAY(), breakpoint(), cons_putchar(), cons_getchar(), cons_kbhit(),
 #include <spede/sys/cdefs.h> // __BEGIN_DECLS, __END_DECLS, etc.
 #include <spede/stdio.h> // printf(), sprintf(), vprintf(), sscanf(), etc.
-#include <spede/stdlib.h>
-#include <spede/string.h>
-#include <spede/time.h>
 #include <spede/assert.h> // assert()
 
 #include <spede/machine/io.h> // inportb(), outportb(), inportw(), etc.
@@ -17,7 +14,6 @@
 #include <spede/machine/seg.h> // struct i386_gate, fill_gate(), etc.
 #include <spede/machine/asmacros.h> // ASM(), CNAME(), ENTRY(), etc.
 
-#include <spede/machine/pic.h>
 #include <spede/machine/parallel.h> // Printer, IRQ 7
 #include <spede/machine/rs232.h>    // Terminal, IRQ 3
 #include <spede/string.h> // file system phase needs strtok()

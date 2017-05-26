@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# make files with spede-mkmf execution
+# spede-mkmf execution and flashing GidOS.dli to target 
 spede-mkmf -q
 sed -ie 's/MyOS/GidOS/g' Makefile
 make
