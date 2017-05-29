@@ -5,11 +5,12 @@
 
 #include "types.h"   // need definition of 'func_ptr_t' below
 
-// Time Sharing and Context Switches (phase 1)
 void NewProcHandler(func_ptr_t);
 void TimerHandler(void);
-// Kernel Services (phase 2)
-void GetPidHandler(void);
 void SleepHandler(int);
+void GetPidHandler(void);
+void SemAllocHandler(int);
+void SemWaitHandler(int);
+void SemPostHandler(int);
 
 #endif
